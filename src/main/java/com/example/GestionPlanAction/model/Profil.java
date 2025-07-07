@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -19,7 +21,8 @@ public class Profil {
 
     private String nom;
 
-    @ManyToMany(mappedBy = "profils")
+    @ManyToMany(mappedBy = "profils", fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<User> utilisateurs = new HashSet<>();
 
 }

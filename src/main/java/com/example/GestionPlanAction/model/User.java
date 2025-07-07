@@ -28,14 +28,16 @@ public class User {
     private String username;
     private String motDePasse;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "profil_utilisateur_association",
             joinColumns = @JoinColumn(name = "idUtilisateur"),
             inverseJoinColumns = @JoinColumn(name = "idProfil"))
+    @JsonIgnore
     private Set<Profil> profils = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_line_id")
+    @JsonIgnore
     private ServiceLine serviceLine;
 
     @OneToMany(mappedBy = "responsable")

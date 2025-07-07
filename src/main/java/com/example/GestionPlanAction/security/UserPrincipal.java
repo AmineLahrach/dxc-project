@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.security;
 
+import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Data
 @AllArgsConstructor
@@ -32,9 +33,24 @@ public class UserPrincipal implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserPrincipal create(User user) {
-        List<GrantedAuthority> authorities = user.getProfils().stream()
-                .map(profil -> new SimpleGrantedAuthority("ROLE_" + profil.getNom().toUpperCase()))
-                .collect(Collectors.toList());
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        
+        // Fix: Create a defensive copy to avoid ConcurrentModificationException
+        try {
+            if (user.getProfils() != null && !user.getProfils().isEmpty()) {
+                // Convert to ArrayList to avoid lazy loading issues
+                List<Profil> profilsList = new ArrayList<>(user.getProfils());
+                for (Profil profil : profilsList) {
+                    if (profil != null && profil.getNom() != null) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + profil.getNom().toUpperCase()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading user profiles: " + e.getMessage());
+            // Add default role if profile loading fails
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        }
 
         return new UserPrincipal(
                 user.getId(),

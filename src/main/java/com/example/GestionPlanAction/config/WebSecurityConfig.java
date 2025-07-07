@@ -64,14 +64,17 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**").permitAll()
+                auth
+                    // Public endpoints - no authentication required
+                    .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/test/**").permitAll()
-                    .requestMatchers("/swagger-ui.html").permitAll() // <-- Add this line
+                    .requestMatchers("/swagger-ui.html").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll() // If using H2 for testing
+                    
+                    // Temporarily allow users endpoint for testing
+                    .requestMatchers("/api/users/**").permitAll()
                     
                     // Admin only endpoints
-                    .requestMatchers("/api/users/**").permitAll()
                     .requestMatchers("/api/profils/**").hasRole("ADMINISTRATEUR")
                     .requestMatchers("/api/servicelines/**").hasRole("ADMINISTRATEUR")
                     .requestMatchers("/api/audit/**").hasRole("ADMINISTRATEUR")
@@ -86,6 +89,7 @@ public class WebSecurityConfig {
                     .requestMatchers("/api/variable-actions/**").hasAnyRole("ADMINISTRATEUR", "DIRECTEUR_GENERAL", "COLLABORATEUR")
                     .requestMatchers("/api/notifications/**").authenticated()
                     
+                    // All other requests require authentication
                     .anyRequest().authenticated()
             );
 
