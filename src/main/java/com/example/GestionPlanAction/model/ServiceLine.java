@@ -1,5 +1,4 @@
 package com.example.GestionPlanAction.model ;
-import com.example.GestionPlanAction.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;

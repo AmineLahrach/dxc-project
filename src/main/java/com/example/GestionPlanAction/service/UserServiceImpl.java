@@ -2,7 +2,6 @@ package com.example.GestionPlanAction.service;
 
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.repository.UserRepository;
-import com.example.GestionPlanAction.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

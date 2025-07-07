@@ -2,7 +2,6 @@ package com.example.GestionPlanAction.service;
 
 import com.example.GestionPlanAction.model.ServiceLine;
 import com.example.GestionPlanAction.repository.ServiceLineRepository;
-import com.example.GestionPlanAction.service.ServiceLineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
