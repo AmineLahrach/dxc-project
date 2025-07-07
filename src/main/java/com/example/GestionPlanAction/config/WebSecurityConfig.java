@@ -66,11 +66,12 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/test/**").permitAll()
+                    .requestMatchers("/swagger-ui.html").permitAll() // <-- Add this line
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll() // If using H2 for testing
                     
                     // Admin only endpoints
-                    .requestMatchers("/api/users/**").hasRole("ADMINISTRATEUR")
+                    .requestMatchers("/api/users/**").permitAll()
                     .requestMatchers("/api/profils/**").hasRole("ADMINISTRATEUR")
                     .requestMatchers("/api/servicelines/**").hasRole("ADMINISTRATEUR")
                     .requestMatchers("/api/audit/**").hasRole("ADMINISTRATEUR")
