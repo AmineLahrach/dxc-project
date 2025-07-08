@@ -12,12 +12,14 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-profile-list',
   imports: [CommonModule, MatIconModule, ReactiveFormsModule,
     MatFormFieldModule, MatTableModule, MatInputModule,
-    MatPaginatorModule, RouterModule, MatButtonModule
+    MatPaginatorModule, RouterModule, MatButtonModule,
+    MatIconModule, MatMenuModule
   ],
   templateUrl: './profile-list.component.html'
 })

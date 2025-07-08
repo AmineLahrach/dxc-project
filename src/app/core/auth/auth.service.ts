@@ -137,7 +137,7 @@ export class AuthService {
                 this._authenticated = true;
                 const _user : User = {
                     id: response.id,
-                    avatar: response.avatar || 'images/avatars/default-avatar.png',
+                    avatar: response.avatar || 'images/avatars/brian-hughes.jpg',
                     nom: response.nom,
                     prenom: response.prenom,
                     email: response.email,

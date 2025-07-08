@@ -3,12 +3,13 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ServiceLine } from "app/models/business.models";
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ServiceLineService {
-  private apiUrl = 'http//localhost:8081/api/servicelines';
+  private apiUrl = `${environment.apiUrl}/servicelines`;
 
   constructor(private http: HttpClient) {}
 

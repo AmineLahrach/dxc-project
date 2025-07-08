@@ -1,0 +1,116 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <a class="ml-1 whitespace-nowrap text-primary-500" [routerLink]="['/exercices']">Exercises</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">{{isEditMode ? 'Edit' : 'Create'}}</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    {{isEditMode ? 'Edit Exercise' : 'Create Exercise'}}
+                </h2>
+                <p class="text-secondary">
+                    {{isEditMode ? 'Update fiscal year information' : 'Define a new fiscal year for action plans'}}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <button
+                mat-stroked-button
+                (click)="cancel()">
+                Cancel
+            </button>
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="onSubmit()"
+                [disabled]="loading || exerciceForm.invalid">
+                <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+                <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Exercise</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <form [formGroup]="exerciceForm" class="space-y-8">
+            <!-- Basic Information -->
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="flex items-center mb-6">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+                    <h3 class="text-lg font-semibold">Exercise Information</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Year -->
+                    <mat-form-field>
+                        <mat-label>Year</mat-label>
+                        <input matInput type="number" formControlName="annee" min="2000" max="2100">
+                        <mat-error>{{getFieldError('annee')}}</mat-error>
+                        <mat-hint>Enter a year between 2000 and 2100</mat-hint>
+                    </mat-form-field>
+
+                    <!-- Status -->
+                    <div class="flex items-center md:justify-start">
+                        <mat-checkbox formControlName="verrouille" color="primary">
+                            Locked
+                        </mat-checkbox>
+                        <mat-icon 
+                            class="ml-2 text-secondary"
+                            matTooltip="Locked exercises cannot have new plans created"
+                            [svgIcon]="'heroicons_outline:information-circle'">
+                        </mat-icon>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <p class="text-sm text-secondary">
+                        <mat-icon class="icon-size-5 align-middle mr-1" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+                        <span *ngIf="exerciceForm.get('verrouille')?.value">
+                            When an exercise is locked, no new action plans can be created for this fiscal year.
+                        </span>
+                        <span *ngIf="!exerciceForm.get('verrouille')?.value">
+                            This exercise is currently unlocked. Users will be able to create new action plans for this fiscal year.
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4">
+                <button
+                    type="button"
+                    mat-stroked-button
+                    (click)="cancel()">
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    mat-flat-button
+                    color="primary"
+                    (click)="onSubmit()"
+                    [disabled]="loading || exerciceForm.invalid">
+                    <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+                    <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                    <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Exercise</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

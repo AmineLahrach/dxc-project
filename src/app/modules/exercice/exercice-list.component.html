@@ -1,0 +1,206 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Exercises</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Exercises
+                </h2>
+                <p class="text-secondary">Manage fiscal years for action plans</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <!-- Bulk actions -->
+            <div class="flex items-center space-x-2" *ngIf="selectedExercises.length > 0">
+                <span class="text-sm text-secondary">{{selectedExercises.length}} selected</span>
+                <button
+                    mat-stroked-button
+                    color="warn"
+                    (click)="deleteSelected()">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    <span class="ml-2">Delete</span>
+                </button>
+                <button
+                    mat-stroked-button
+                    (click)="clearSelection()">
+                    Clear
+                </button>
+            </div>
+            
+            <button
+                mat-flat-button
+                color="primary"
+                [routerLink]="['/exercices/create']">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create Exercise</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <!-- Filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6 space-y-4 sm:space-y-0">
+            <!-- Search -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Search exercises...</mat-label>
+                <input matInput [formControl]="searchControl" placeholder="Search by year">                
+                <mat-icon matSuffix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+            </mat-form-field>
+            
+            <!-- Lock status filter -->
+            <mat-form-field class="w-full sm:w-48">
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="statusFilter">
+                    <mat-option value="all">All</mat-option>
+                    <mat-option value="locked">Locked</mat-option>
+                    <mat-option value="unlocked">Unlocked</mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Refresh button -->
+            <button
+                mat-icon-button
+                matTooltip="Refresh"
+                (click)="loadExercises()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+            
+            <!-- Loading -->
+            <div *ngIf="loading" class="flex justify-center items-center h-64">
+                <mat-spinner diameter="48"></mat-spinner>
+            </div>
+
+            <!-- Table content -->
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+
+                    <!-- Selection column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef class="w-12">
+                            <mat-checkbox
+                                [checked]="selectedExercises.length === dataSource.data.length"
+                                [indeterminate]="selectedExercises.length > 0 && selectedExercises.length < dataSource.data.length"
+                                (change)="$event.checked ? selectAll() : clearSelection()">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let exercise" class="w-12" (click)="$event.stopPropagation()">
+                            <mat-checkbox
+                                [checked]="isSelected(exercise)"
+                                (change)="toggleSelection(exercise)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+
+                    <!-- Year column -->
+                    <ng-container matColumnDef="annee">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Year
+                        </th>
+                        <td mat-cell *matCellDef="let exercise">
+                            <span class="font-medium">{{exercise.annee}}</span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status column -->
+                    <ng-container matColumnDef="verrouille">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let exercise">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                [class]="exercise.verrouille ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
+                                {{exercise.verrouille ? 'Locked' : 'Unlocked'}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Actions
+                        </th>
+                        <td mat-cell *matCellDef="let exercise" (click)="$event.stopPropagation()">
+                            <div class="flex items-center space-x-1">
+                                <!-- Edit -->
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Edit Exercise"
+                                    [routerLink]="['/exercices/edit', exercise.id]">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                
+                                <!-- Lock/Unlock -->
+                                <button
+                                    mat-icon-button
+                                    [matTooltip]="exercise.verrouille ? 'Unlock Exercise' : 'Lock Exercise'"
+                                    (click)="toggleLock(exercise)">
+                                    <mat-icon [svgIcon]="exercise.verrouille ? 'heroicons_outline:lock-open' : 'heroicons_outline:lock-closed'"></mat-icon>
+                                </button>
+                                
+                                <!-- Delete -->
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Delete Exercise"
+                                    (click)="deleteExercise(exercise)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Header and rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row 
+                        *matRowDef="let exercise; columns: displayedColumns;" 
+                        class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator
+                [pageSizeOptions]="[10, 25, 50, 100]"
+                [pageSize]="25"
+                showFirstLastButtons>
+            </mat-paginator>
+
+            <!-- Empty state -->
+            <div *ngIf="!loading && dataSource.data.length === 0" 
+                 class="flex flex-col items-center justify-center py-16">
+                <mat-icon 
+                    class="icon-size-24 text-hint mb-4"
+                    [svgIcon]="'heroicons_outline:calendar'">
+                </mat-icon>
+                <div class="text-2xl font-semibold mb-2">No exercises found</div>
+                <div class="text-secondary mb-6">Create your first exercise to get started</div>
+                <button 
+                    mat-flat-button 
+                    color="primary"
+                    [routerLink]="['/exercices/create']">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    <span class="ml-2">Create Exercise</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

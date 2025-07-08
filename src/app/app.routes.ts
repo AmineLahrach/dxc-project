@@ -126,5 +126,17 @@ export const appRoutes: Route[] = [
         children: [
             {path: 'service-lines', loadChildren: () => import('app/modules/service-line/service-line.routes')},
         ]
+    },
+    {
+        path: '',
+        canActivate: [AuthGuard],
+        canActivateChild: [AuthGuard],
+        component: LayoutComponent,
+        resolve: {
+            initialData: initialDataResolver
+        },
+        children: [
+            {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
+        ]
     }
 ];
