@@ -1,0 +1,130 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Profiles</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Profile Management
+                </h2>
+                <p class="text-secondary">
+                    Manage user profiles and role assignments
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="openProfileForm()">
+                <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+                <span class="ml-2">Add New Profile</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <!-- Search and filters -->
+        <div class="mb-8">
+            <mat-form-field class="w-full sm:w-80">
+                <mat-icon matPrefix class="ml-4 mr-2" svgIcon="heroicons_outline:magnifying-glass"></mat-icon>
+                <input 
+                    matInput 
+                    placeholder="Search profiles"
+                    #searchInput>
+                <button 
+                    *ngIf="searchInput.value"
+                    mat-icon-button 
+                    matSuffix 
+                    (click)="searchInput.value=''"
+                    aria-label="Clear">
+                    <mat-icon svgIcon="heroicons_outline:x-mark"></mat-icon>
+                </button>
+            </mat-form-field>
+        </div>
+
+        <!-- Profiles table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+            <table mat-table [dataSource]="profiles" class="w-full">
+                
+                <!-- ID Column -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef> ID </th>
+                    <td mat-cell *matCellDef="let profile"> {{profile.id}} </td>
+                </ng-container>
+                
+                <!-- Name Column -->
+                <ng-container matColumnDef="nom">
+                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <td mat-cell *matCellDef="let profile"> {{profile.nom}} </td>
+                </ng-container>
+                
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="w-20"> Actions </th>
+                    <td mat-cell *matCellDef="let profile" class="text-right">
+                        <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+                            <mat-icon svgIcon="heroicons_outline:ellipsis-vertical"></mat-icon>
+                        </button>
+                        <mat-menu #actionsMenu="matMenu">
+                            <button mat-menu-item (click)="editProfile(profile)">
+                                <mat-icon svgIcon="heroicons_outline:pencil"></mat-icon>
+                                <span>Edit</span>
+                            </button>
+                            <button mat-menu-item (click)="deleteProfile(profile.id)">
+                                <mat-icon svgIcon="heroicons_outline:trash" class="text-warn"></mat-icon>
+                                <span>Delete</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+            
+                <tr mat-header-row *matHeaderRowDef="['id', 'nom', 'actions']"></tr>
+                <tr 
+                    mat-row 
+                    *matRowDef="let profile; columns: ['id', 'nom', 'actions']"
+                    class="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                </tr>
+            </table>
+            
+            <!-- No profiles message -->
+            <div 
+                *ngIf="profiles.length === 0" 
+                class="p-8 text-center">
+                <mat-icon 
+                    class="icon-size-16 text-hint mb-4"
+                    svgIcon="heroicons_outline:user-group">
+                </mat-icon>
+                <div class="text-lg font-medium mb-2">No profiles found</div>
+                <div class="text-secondary mb-4">Create a new profile to get started</div>
+                <button
+                    mat-flat-button
+                    color="primary"
+                    (click)="openProfileForm()">
+                    <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+                    <span class="ml-2">Add New Profile</span>
+                </button>
+            </div>
+            
+            <!-- Paginator -->
+            <mat-paginator 
+                [pageSizeOptions]="[5, 10, 25]"
+                showFirstLastButtons
+                aria-label="Select page of profiles">
+            </mat-paginator>
+        </div>
+    </div>
+</div>

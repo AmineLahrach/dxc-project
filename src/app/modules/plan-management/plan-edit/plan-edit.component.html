@@ -1,0 +1,269 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <a class="ml-1 whitespace-nowrap text-primary-500" [routerLink]="['/plans']">Plans</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">{{isEditMode ? 'Edit' : 'Create'}}</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    {{isEditMode ? 'Edit Action Plan' : 'Create Action Plan'}}
+                </h2>
+                <p class="text-secondary">
+                    {{isEditMode ? 'Update your strategic action plan' : 'Define a new strategic action plan'}}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <button
+                mat-stroked-button
+                (click)="saveDraft()"
+                [disabled]="loading">
+                <mat-icon [svgIcon]="'heroicons_outline:bookmark'"></mat-icon>
+                <span class="ml-2">Save Draft</span>
+            </button>
+            <button
+                mat-stroked-button
+                (click)="cancel()">
+                Cancel
+            </button>
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="onSubmit()"
+                [disabled]="loading || planForm.invalid">
+                <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+                <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Plan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        
+        <form [formGroup]="planForm" (ngSubmit)="onSubmit()" class="space-y-8">
+
+            <!-- Basic Information -->
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="flex items-center mb-6">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+                    <h3 class="text-lg font-semibold">Basic Information</h3>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Plan Title -->
+                    <mat-form-field class="lg:col-span-2">
+                        <mat-label>Plan Title</mat-label>
+                        <input matInput formControlName="titre" placeholder="Enter a descriptive title for your plan">
+                        <mat-error>{{getFieldError('titre')}}</mat-error>
+                        <mat-hint>A clear, concise title that describes the plan's objective</mat-hint>
+                    </mat-form-field>
+
+                    <!-- Exercise -->
+                    <mat-form-field>
+                        <mat-label>Exercise</mat-label>
+                        <mat-select formControlName="exerciceId">
+                            <mat-option *ngFor="let exercise of exercises" [value]="exercise.id">
+                                {{exercise.annee}} - {{exercise.description}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error>{{getFieldError('exerciceId')}}</mat-error>
+                    </mat-form-field>
+
+                    <!-- Due Date -->
+                    <mat-form-field>
+                        <mat-label>Due Date</mat-label>
+                        <input matInput [matDatepicker]="dueDatePicker" formControlName="dueDate">
+                        <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #dueDatePicker></mat-datepicker>
+                        <mat-hint>Target completion date</mat-hint>
+                    </mat-form-field>
+
+                    <!-- Description -->
+                    <mat-form-field class="lg:col-span-2">
+                        <mat-label>Description</mat-label>
+                        <textarea 
+                            matInput 
+                            formControlName="description" 
+                            rows="4"
+                            placeholder="Provide a detailed description of the action plan">
+                        </textarea>
+                        <mat-error>{{getFieldError('description')}}</mat-error>
+                        <mat-hint>Detailed explanation of the plan's objectives and scope</mat-hint>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- Variable Actions -->
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:variable'"></mat-icon>
+                        <div>
+                            <h3 class="text-lg font-semibold">Action Variables</h3>
+                            <p class="text-sm text-secondary">Define measurable variables for this plan</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        mat-flat-button
+                        color="primary"
+                        (click)="addVariableAction()">
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                        <span class="ml-2">Add Variable</span>
+                    </button>
+                </div>
+
+                <!-- Weight validation warning -->
+                <div 
+                    class="mb-4 p-4 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
+                    *ngIf="variableActions.length > 0 && !isWeightValid()">
+                    <div class="flex items-center">
+                        <mat-icon class="text-orange-600 mr-2" [svgIcon]="'heroicons_outline:exclamation-triangle'"></mat-icon>
+                        <span class="text-orange-800 dark:text-orange-200">
+                            Total weight must equal 1.0 (currently: {{getTotalWeight() | number:'1.2-2'}})
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Variables list -->
+                <div class="space-y-4" formArrayName="variableActions">
+                    <div 
+                        *ngFor="let variableGroup of variableActions.controls; let i = index"
+                        class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                        [formGroupName]="i">
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium">Variable {{i + 1}}</h4>
+                            <button
+                                type="button"
+                                mat-icon-button
+                                color="warn"
+                                (click)="removeVariableAction(i)"
+                                matTooltip="Remove Variable">
+                                <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            
+                            <!-- Description -->
+                            <mat-form-field class="md:col-span-2 lg:col-span-3">
+                                <mat-label>Variable Description</mat-label>
+                                <input matInput formControlName="description" 
+                                       placeholder="Describe what this variable measures">
+                                <mat-error>{{getVariableFieldError(i, 'description')}}</mat-error>
+                            </mat-form-field>
+
+                            <!-- Weight -->
+                            <mat-form-field>
+                                <mat-label>Weight</mat-label>
+                                <input matInput type="number" formControlName="poids" 
+                                       step="0.1" min="0" max="1" placeholder="0.0 - 1.0">
+                                <mat-error>{{getVariableFieldError(i, 'poids')}}</mat-error>
+                                <mat-hint>Importance weight (0.0 - 1.0)</mat-hint>
+                            </mat-form-field>
+
+                            <!-- Level -->
+                            <mat-form-field>
+                                <mat-label>Level</mat-label>
+                                <mat-select formControlName="niveau">
+                                    <mat-option [value]="1">Level 1 (Primary)</mat-option>
+                                    <mat-option [value]="2">Level 2 (Secondary)</mat-option>
+                                    <mat-option [value]="3">Level 3 (Tertiary)</mat-option>
+                                </mat-select>
+                                <mat-error>{{getVariableFieldError(i, 'niveau')}}</mat-error>
+                            </mat-form-field>
+
+                            <!-- Responsible -->
+                            <mat-form-field>
+                                <mat-label>Responsible Person</mat-label>
+                                <mat-select formControlName="responsableId">
+                                    <mat-option *ngFor="let user of users" [value]="user.id">
+                                        {{user.prenom}} {{user.nom}}
+                                    </mat-option>
+                                </mat-select>
+                                <mat-error>{{getVariableFieldError(i, 'responsableId')}}</mat-error>
+                            </mat-form-field>
+
+                            <!-- Fixed checkbox -->
+                            <div class="flex items-center mt-4">
+                                <mat-checkbox formControlName="fige">
+                                    Fixed Variable
+                                </mat-checkbox>
+                                <mat-icon 
+                                    class="ml-2 text-secondary"
+                                    matTooltip="Fixed variables cannot be modified once approved"
+                                    [svgIcon]="'heroicons_outline:lock-closed'">
+                                </mat-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div 
+                    *ngIf="variableActions.length === 0"
+                    class="text-center py-12">
+                    <mat-icon 
+                        class="icon-size-16 text-hint mb-4"
+                        [svgIcon]="'heroicons_outline:variable'">
+                    </mat-icon>
+                    <div class="text-lg font-medium mb-2">No variables defined</div>
+                    <div class="text-secondary mb-4">Add action variables to make your plan measurable</div>
+                    <button
+                        type="button"
+                        mat-flat-button
+                        color="primary"
+                        (click)="addVariableAction()">
+                        <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                        <span class="ml-2">Add First Variable</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t">
+                <button
+                    type="button"
+                    mat-stroked-button
+                    (click)="cancel()">
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    mat-stroked-button
+                    (click)="saveDraft()"
+                    [disabled]="loading">
+                    Save Draft
+                </button>
+                <button
+                    type="submit"
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="loading || planForm.invalid || !isWeightValid()">
+                    <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+                    <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                    <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Plan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

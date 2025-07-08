@@ -1,0 +1,142 @@
+<div class="p-6">
+    <!-- Dialog header -->
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">{{ isEditMode ? 'Edit User' : 'Create New User' }}</h2>
+        <button mat-icon-button (click)="cancel()" type="button">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- First Name -->
+            <mat-form-field>
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="prenom" placeholder="Enter first name">
+                <mat-error>{{ getErrorMessage('prenom') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Last Name -->
+            <mat-form-field>
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="nom" placeholder="Enter last name">
+                <mat-error>{{ getErrorMessage('nom') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field>
+                <mat-label>Email</mat-label>
+                <input matInput formControlName="email" placeholder="Enter email address" type="email">
+                <mat-error>{{ getErrorMessage('email') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Username -->
+            <mat-form-field>
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" placeholder="Enter username">
+                <mat-error>{{ getErrorMessage('username') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Password - only required for new users -->
+            <mat-form-field>
+                <mat-label>{{ isEditMode ? 'New Password (leave blank to keep unchanged)' : 'Password' }}</mat-label>
+                <input 
+                    matInput 
+                    formControlName="motDePasse" 
+                    [type]="hidePassword ? 'password' : 'text'"
+                    [placeholder]="isEditMode ? 'Enter new password (optional)' : 'Enter password'">
+                <button 
+                    type="button"
+                    mat-icon-button 
+                    matSuffix 
+                    (click)="hidePassword = !hidePassword">
+                    <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+                </button>
+                <mat-error>{{ getErrorMessage('motDePasse') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Service Line -->
+            <mat-form-field>
+                <mat-label>Service Line</mat-label>
+                <mat-select formControlName="serviceLineId">
+                    <mat-option *ngFor="let line of serviceLines" [value]="line.id">
+                        {{ line.name }}
+                    </mat-option>
+                </mat-select>
+                <mat-error>{{ getErrorMessage('serviceLineId') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Roles -->
+            <mat-form-field>
+                <mat-label>Roles</mat-label>
+                <mat-select formControlName="roles" multiple>
+                    <mat-option *ngFor="let role of availableRoles" [value]="role.value">
+                        {{ role.label }}
+                    </mat-option>
+                </mat-select>
+                <mat-error>{{ getErrorMessage('roles') }}</mat-error>
+            </mat-form-field>
+
+            <!-- Status (for existing users) -->
+            <mat-form-field *ngIf="isEditMode">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+                        <div class="flex items-center">
+                            <span 
+                                class="w-3 h-3 rounded-full mr-2"
+                                [class.bg-green-500]="status.value === 'online'"
+                                [class.bg-yellow-500]="status.value === 'away'"
+                                [class.bg-red-500]="status.value === 'busy'"
+                                [class.bg-gray-500]="status.value === 'not-visible'">
+                            </span>
+                            {{ status.label }}
+                        </div>
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Avatar URL (optional) -->
+            <mat-form-field *ngIf="isEditMode">
+                <mat-label>Avatar URL</mat-label>
+                <input matInput formControlName="avatar" placeholder="Enter avatar image URL (optional)">
+            </mat-form-field>
+        </div>
+
+        <!-- Active status -->
+        <div class="mb-6 mt-4" *ngIf="isEditMode">
+            <mat-checkbox formControlName="actif">Active user account</mat-checkbox>
+        </div>
+
+        <!-- Role chips preview -->
+        <div class="mb-6" *ngIf="userForm.get('roles')?.value?.length">
+            <div class="text-sm text-secondary mb-2">Selected roles:</div>
+            <div class="flex flex-wrap gap-2">
+                <span *ngFor="let role of userForm.get('roles')?.value" 
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [class]="getRoleChipClass(role)">
+                    {{role}}
+                </span>
+            </div>
+        </div>
+
+        <!-- Submit and cancel buttons -->
+        <div class="flex items-center justify-end space-x-3 pt-6 border-t">
+            <button 
+                type="button"
+                mat-stroked-button 
+                (click)="cancel()">
+                Cancel
+            </button>
+            <button 
+                type="submit"
+                mat-flat-button 
+                color="primary"
+                [disabled]="loading || userForm.invalid">
+                <mat-spinner *ngIf="loading" [diameter]="20" class="mr-2"></mat-spinner>
+                <span>{{ isEditMode ? 'Update User' : 'Create User' }}</span>
+            </button>
+        </div>
+    </form>
+</div>

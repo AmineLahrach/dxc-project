@@ -1,0 +1,163 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Service Lines</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Service Line Management
+                </h2>
+                <p class="text-secondary">
+                    Manage service lines across your organization
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="createServiceLine()">
+                <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+                <span class="ml-2">Add New Service Line</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <!-- Service Line Form -->
+        <div *ngIf="selectedServiceLine" class="mb-8 bg-card rounded-2xl shadow overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <div class="flex items-center">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="isEditing ? 'heroicons_outline:pencil' : 'heroicons_outline:plus'"></mat-icon>
+                    <h3 class="text-lg font-semibold">{{ isEditing ? 'Edit' : 'Create' }} Service Line</h3>
+                </div>
+                <button mat-icon-button (click)="cancelEdit()">
+                    <mat-icon svgIcon="heroicons_outline:x-mark"></mat-icon>
+                </button>
+            </div>
+            <div class="p-6">
+                <app-service-line-form
+                  [serviceLine]="selectedServiceLine"
+                  (save)="saveServiceLine($event)"
+                  (cancel)="cancelEdit()">
+                </app-service-line-form>
+            </div>
+        </div>
+
+        <!-- Search and filters -->
+        <div class="mb-8" *ngIf="!selectedServiceLine">
+            <mat-form-field class="w-full sm:w-80">
+                <mat-icon matPrefix class="ml-4 mr-2" svgIcon="heroicons_outline:magnifying-glass"></mat-icon>
+                <input 
+                    matInput 
+                    placeholder="Search service lines"
+                    #searchInput
+                    (keyup)="applyFilter($event)">
+                <button 
+                    *ngIf="searchInput.value"
+                    mat-icon-button 
+                    matSuffix 
+                    (click)="searchInput.value=''; clearFilter()"
+                    aria-label="Clear">
+                    <mat-icon svgIcon="heroicons_outline:x-mark"></mat-icon>
+                </button>
+            </mat-form-field>
+        </div>
+
+        <!-- Service Line List -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden" *ngIf="!selectedServiceLine">
+            <table mat-table [dataSource]="dataSource" matSort class="w-full">
+                
+                <!-- Name Column -->
+                <ng-container matColumnDef="nom">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+                    <td mat-cell *matCellDef="let serviceLine"> {{serviceLine.nom}} </td>
+                </ng-container>
+                
+                <!-- Description Column -->
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Description </th>
+                    <td mat-cell *matCellDef="let serviceLine"> {{serviceLine.description || 'No description'}} </td>
+                </ng-container>
+                
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="w-20"> Actions </th>
+                    <td mat-cell *matCellDef="let serviceLine" class="text-right">
+                        <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+                            <mat-icon svgIcon="heroicons_outline:ellipsis-vertical"></mat-icon>
+                        </button>
+                        <mat-menu #actionsMenu="matMenu">
+                            <button mat-menu-item (click)="editServiceLine(serviceLine)">
+                                <mat-icon svgIcon="heroicons_outline:pencil"></mat-icon>
+                                <span>Edit</span>
+                            </button>
+                            <button mat-menu-item (click)="deleteServiceLine(serviceLine.id!)">
+                                <mat-icon svgIcon="heroicons_outline:trash" class="text-warn"></mat-icon>
+                                <span>Delete</span>
+                            </button>
+                        </mat-menu>
+                    </td>
+                </ng-container>
+            
+                <tr mat-header-row *matHeaderRowDef="['nom', 'description', 'actions']"></tr>
+                <tr 
+                    mat-row 
+                    *matRowDef="let serviceLine; columns: ['nom', 'description', 'actions']"
+                    class="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                </tr>
+                
+                <!-- No results row -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell p-8 text-center" colspan="3">
+                        <ng-container *ngIf="searchInput.value; else noRecords">
+                            No service lines matching "{{searchInput.value}}"
+                        </ng-container>
+                        <ng-template #noRecords>
+                            No service lines found
+                        </ng-template>
+                    </td>
+                </tr>
+            </table>
+            
+            <!-- Empty state -->
+            <div 
+                *ngIf="serviceLines.length === 0" 
+                class="p-8 text-center">
+                <mat-icon 
+                    class="icon-size-16 text-hint mb-4"
+                    svgIcon="heroicons_outline:queue-list">
+                </mat-icon>
+                <div class="text-lg font-medium mb-2">No service lines found</div>
+                <div class="text-secondary mb-4">Create a new service line to get started</div>
+                <button
+                    mat-flat-button
+                    color="primary"
+                    (click)="createServiceLine()">
+                    <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+                    <span class="ml-2">Add New Service Line</span>
+                </button>
+            </div>
+            
+            <!-- Paginator -->
+            <mat-paginator 
+                [pageSizeOptions]="[5, 10, 25, 100]"
+                showFirstLastButtons
+                aria-label="Select page of service lines">
+            </mat-paginator>
+        </div>
+    </div>
+</div>

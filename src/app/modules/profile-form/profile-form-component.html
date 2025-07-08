@@ -1,0 +1,13 @@
+<form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+  <div>
+    <label for="nom">Nom:</label>
+    <input type="text" id="nom" formControlName="nom" required>
+    <div *ngIf="profileForm.get('nom')?.invalid && profileForm.get('nom')?.touched" class="error-message">
+      Name is required
+    </div>
+  </div>
+  <div>
+    <button type="submit" [disabled]="!profileForm.valid">Submit</button>
+    <button type="button" (click)="cancel()">Cancel</button>
+  </div>
+</form>

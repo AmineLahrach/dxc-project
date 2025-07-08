@@ -1,0 +1,297 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">User Management</span>
+                </div>
+            </div>
+            
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Users
+                </h2>
+                <p class="text-secondary">Manage system users and permissions</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <!-- Bulk actions -->
+            <div class="flex items-center space-x-2" *ngIf="selectedUsers.length > 0">
+                <span class="text-sm text-secondary">{{selectedUsers.length}} selected</span>
+                <button
+                    mat-stroked-button
+                    color="warn"
+                    (click)="clearSelection()">
+                    <span>Clear</span>
+                </button>
+                <button
+                    mat-stroked-button
+                    color="warn"
+                    (click)="deleteSelected()">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    <span class="ml-2">Delete</span>
+                </button>
+            </div>
+            
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="createUser()">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Add User</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6 space-y-4 sm:space-y-0">
+            
+            <!-- Search -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Search users...</mat-label>
+                <input matInput [formControl]="searchControl" placeholder="Search by name, email, username">                
+                <mat-icon matSuffix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+            </mat-form-field>
+            
+            <!-- Role filter -->
+            <mat-form-field class="w-full sm:w-48">
+                <mat-label>Filter by Role</mat-label>
+                <mat-select [formControl]="roleFilter" multiple>
+                    <mat-option *ngFor="let role of roleOptions" [value]="role.value">
+                        {{role.label}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Status filter -->
+            <mat-form-field class="w-full sm:w-48">
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="activeFilter">
+                    <mat-option value="all">All Users</mat-option>
+                    <mat-option value="active">Active Only</mat-option>
+                    <mat-option value="inactive">Inactive Only</mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Refresh button -->
+            <button
+                mat-icon-button
+                class="sm:ml-4"
+                matTooltip="Refresh"
+                (click)="loadUsers()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+            
+            <!-- Loading -->
+            <div *ngIf="loading" class="flex justify-center items-center h-64">
+                <mat-spinner diameter="48"></mat-spinner>
+            </div>
+
+            <!-- Table content -->
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+                    
+                    <!-- Avatar column -->
+                    <ng-container matColumnDef="avatar">
+                        <th mat-header-cell *matHeaderCellDef class="w-20">
+                            <mat-checkbox 
+                                (change)="$event.checked ? selectAll() : clearSelection()" 
+                                [checked]="selectedUsers.length === dataSource.filteredData.length && dataSource.filteredData.length > 0"
+                                [indeterminate]="selectedUsers.length > 0 && selectedUsers.length < dataSource.filteredData.length">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <div class="flex items-center">
+                                <mat-checkbox
+                                    (click)="$event.stopPropagation()"
+                                    (change)="toggleSelection(user)"
+                                    [checked]="isSelected(user)">
+                                </mat-checkbox>
+                                <div class="ml-3 w-8 h-8 rounded-full flex items-center justify-center" 
+                                    [class.bg-primary-100]="user.actif" 
+                                    [class.text-primary-700]="user.actif"
+                                    [class.bg-gray-100]="!user.actif"
+                                    [class.text-gray-500]="!user.actif">
+                                    <span *ngIf="!user.avatar" class="text-sm font-medium">
+                                        {{getUserInitials(user)}}
+                                    </span>
+                                    <img *ngIf="user.avatar" [src]="user.avatar" class="w-8 h-8 rounded-full" [alt]="user.prenom">
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Last name column -->
+                    <ng-container matColumnDef="nom">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Last Name
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span class="text-sm font-medium">
+                                {{user.nom}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- First name column -->
+                    <ng-container matColumnDef="prenom">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            First Name
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span class="text-sm font-medium">
+                                {{user.prenom}}
+                            </span>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Email column -->
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Email
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span class="text-sm">
+                                {{user.email}}
+                            </span>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Username column -->
+                    <ng-container matColumnDef="username">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Username
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span class="text-sm">
+                                {{user.username}}
+                            </span>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Roles column -->
+                    <ng-container matColumnDef="roles">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Roles
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <div class="flex flex-wrap gap-1">
+                                <span *ngFor="let role of user.roles" 
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                    [class]="getRoleChipClass(role)">
+                                    {{role}}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Service line column -->
+                    <ng-container matColumnDef="serviceLine">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Service Line
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span class="text-sm">
+                                {{user.serviceLine}}
+                            </span>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Status column -->
+                    <ng-container matColumnDef="actif">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <span 
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                [class]="getUserStatusClass(user.actif)">
+                                {{getStatusText(user.actif)}}
+                            </span>
+                        </td>
+                    </ng-container>
+                    
+                    <!-- Actions column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Actions
+                        </th>
+                        <td mat-cell *matCellDef="let user">
+                            <div class="flex items-center space-x-1">
+                                <button
+                                    mat-icon-button
+                                    (click)="$event.stopPropagation(); editUser(user)"
+                                    matTooltip="Edit User">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                <button
+                                    mat-icon-button
+                                    (click)="$event.stopPropagation(); toggleUserStatus(user)"
+                                    [matTooltip]="user.actif ? 'Deactivate User' : 'Activate User'">
+                                    <mat-icon [svgIcon]="user.actif ? 'heroicons_outline:lock-closed' : 'heroicons_outline:lock-open'"></mat-icon>
+                                </button>
+                                <button
+                                    mat-icon-button
+                                    color="warn"
+                                    (click)="$event.stopPropagation(); deleteUser(user)"
+                                    matTooltip="Delete User">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Table layout -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row 
+                        *matRowDef="let user; columns: displayedColumns;" 
+                        class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                        (click)="editUser(user)">
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator
+                [pageSizeOptions]="[10, 25, 50, 100]"
+                [pageSize]="25"
+                showFirstLastButtons>
+            </mat-paginator>
+
+            <!-- Empty state -->
+            <div *ngIf="!loading && dataSource.data.length === 0" 
+                class="flex flex-col items-center justify-center py-16">
+                <mat-icon 
+                    class="icon-size-24 text-hint mb-4"
+                    [svgIcon]="'heroicons_outline:user-group'">
+                </mat-icon>
+                <div class="text-2xl font-semibold mb-2">No users found</div>
+                <div class="text-secondary mb-6">Create your first user to get started</div>
+                <button 
+                    mat-flat-button 
+                    color="primary"
+                    (click)="createUser()">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    <span class="ml-2">Add User</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

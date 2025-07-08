@@ -1,0 +1,290 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Action Plans</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Action Plans
+                </h2>
+                <p class="text-secondary">Manage and track your strategic action plans</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <!-- Bulk actions -->
+            <div class="flex items-center space-x-2" *ngIf="selectedPlans.length > 0">
+                <span class="text-sm text-secondary">{{selectedPlans.length}} selected</span>
+                <button
+                    mat-stroked-button
+                    color="warn"
+                    (click)="deleteSelected()">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    <span class="ml-2">Delete</span>
+                </button>
+                <button
+                    mat-stroked-button
+                    (click)="clearSelection()">
+                    Clear
+                </button>
+            </div>
+            
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="createPlan()">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create Plan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6 space-y-4 sm:space-y-0">
+            
+            <!-- Search -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Search plans...</mat-label>
+                    <input matInput [formControl]="searchControl" placeholder="Search by title, description, or creator">                
+                <mat-icon matSuffix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+            </mat-form-field>
+            
+            <!-- Status filter -->
+            <mat-form-field class="w-full sm:w-48">
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="statusFilter" multiple>
+                    <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+                        <span [class]="status.color" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                            {{status.label}}
+                        </span>
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Refresh button -->
+            <button
+                mat-icon-button
+                matTooltip="Refresh"
+                (click)="loadPlans()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+            
+            <!-- Loading -->
+            <div *ngIf="loading" class="flex justify-center items-center h-64">
+                <mat-spinner diameter="48"></mat-spinner>
+            </div>
+
+            <!-- Table content -->
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+
+                    <!-- Selection column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef class="w-12">
+                            <mat-checkbox
+                                [checked]="selectedPlans.length === dataSource.data.length"
+                                [indeterminate]="selectedPlans.length > 0 && selectedPlans.length < dataSource.data.length"
+                                (change)="$event.checked ? selectAll() : clearSelection()">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let plan" class="w-12">
+                            <mat-checkbox
+                                [checked]="isSelected(plan)"
+                                (change)="toggleSelection(plan)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+
+                    <!-- Title column -->
+                    <ng-container matColumnDef="titre">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Plan Title
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-primary cursor-pointer hover:underline" 
+                                      (click)="viewPlan(plan)">
+                                    {{plan.titre}}
+                                </span>
+                                <span class="text-sm text-secondary line-clamp-2">
+                                    {{plan.description}}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status column -->
+                    <ng-container matColumnDef="statut">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                [class]="getStatusColor(plan.statut)">
+                                {{getStatusLabel(plan.statut)}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Progress column -->
+                    <ng-container matColumnDef="progress">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Progress
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <div class="flex items-center space-x-2">
+                                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                    <div 
+                                        class="h-2 rounded-full transition-all duration-300"
+                                        [class]="getProgressColor(plan.progress || 0)"
+                                        [style.width.%]="plan.progress || 0"
+                                        [class.bg-current]="true">
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium min-w-12">
+                                    {{plan.progress || 0}}%
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Due Date column -->
+                    <ng-container matColumnDef="dueDate">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Due Date
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <span class="text-sm">
+                                {{formatDate(plan.dueDate)}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Created By column -->
+                    <ng-container matColumnDef="createdBy">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Created By
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <span class="text-sm">
+                                {{plan.createdBy || 'Unknown'}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Actions
+                        </th>
+                        <td mat-cell *matCellDef="let plan">
+                            <div class="flex items-center space-x-1">
+                                
+                                <!-- View -->
+                                <button
+                                    mat-icon-button
+                                    matTooltip="View Details"
+                                    (click)="viewPlan(plan)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                                </button>
+                                
+                                <!-- Edit -->
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Edit Plan"
+                                    *ngIf="canEdit(plan)"
+                                    (click)="editPlan(plan)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                                </button>
+                                
+                                <!-- Approve -->
+                                <button
+                                    mat-icon-button
+                                    matTooltip="Approve Plan"
+                                    *ngIf="canApprove(plan)"
+                                    (click)="approvePlan(plan)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                                </button>
+                                
+                                <!-- More actions -->
+                                <button
+                                    mat-icon-button
+                                    [matMenuTriggerFor]="actionsMenu"
+                                    matTooltip="More Actions">
+                                    <mat-icon [svgIcon]="'heroicons_outline:ellipsis-horizontal'"></mat-icon>
+                                </button>
+                                
+                                <mat-menu #actionsMenu="matMenu">
+                                    <button mat-menu-item (click)="duplicatePlan(plan)">
+                                        <mat-icon [svgIcon]="'heroicons_outline:document-duplicate'"></mat-icon>
+                                        <span>Duplicate</span>
+                                    </button>
+                                    <button 
+                                        mat-menu-item 
+                                        *ngIf="canDelete(plan)"
+                                        (click)="deletePlan(plan)">
+                                        <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                        <span>Delete</span>
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Header and rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row 
+                        *matRowDef="let plan; columns: displayedColumns;" 
+                        class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                        (click)="viewPlan(plan)">
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator
+                [pageSizeOptions]="[10, 25, 50, 100]"
+                [pageSize]="25"
+                showFirstLastButtons>
+            </mat-paginator>
+
+            <!-- Empty state -->
+            <div *ngIf="!loading && dataSource.data.length === 0" 
+                 class="flex flex-col items-center justify-center py-16">
+                <mat-icon 
+                    class="icon-size-24 text-hint mb-4"
+                    [svgIcon]="'heroicons_outline:document-text'">
+                </mat-icon>
+                <div class="text-2xl font-semibold mb-2">No action plans found</div>
+                <div class="text-secondary mb-6">Create your first action plan to get started</div>
+                <button 
+                    mat-flat-button 
+                    color="primary"
+                    (click)="createPlan()">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                    <span class="ml-2">Create Plan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

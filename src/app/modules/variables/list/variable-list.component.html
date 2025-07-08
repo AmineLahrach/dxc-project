@@ -1,0 +1,357 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Action Variables</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Action Variables
+                </h2>
+                <p class="text-secondary">Manage and track measurable components of your action plans</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <!-- Bulk actions -->
+            <div class="flex items-center space-x-2" *ngIf="selectedVariables.length > 0">
+                <span class="text-sm text-secondary">{{selectedVariables.length}} selected</span>
+                <button
+                    mat-stroked-button
+                    (click)="bulkUpdateProgress()">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-trending-up'"></mat-icon>
+                    <span class="ml-2">Update Progress</span>
+                </button>
+                <button
+                    mat-stroked-button
+                    color="warn"
+                    (click)="bulkDelete()">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                    <span class="ml-2">Delete</span>
+                </button>
+                <button
+                    mat-stroked-button
+                    (click)="clearSelection()">
+                    Clear
+                </button>
+            </div>
+            
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="createVariable()">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create Variable</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Filters -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:space-x-4 mb-6 space-y-4 lg:space-y-0">
+            
+            <!-- Search -->
+            <mat-form-field class="flex-auto">
+                <mat-label>Search variables...</mat-label>
+                <input matInput [formControl]="searchControl" 
+                       placeholder="Search by description, responsible person, or plan">
+                <mat-icon matSuffix [svgIcon]="'heroicons_outline:magnifying-glass'"></mat-icon>
+            </mat-form-field>
+            
+            <!-- Plan filter -->
+            <mat-form-field class="w-full lg:w-64">
+                <mat-label>Filter by Plan</mat-label>
+                <mat-select [formControl]="planFilter">
+                    <mat-option value="">All Plans</mat-option>
+                    <mat-option *ngFor="let plan of plans" [value]="plan.id">
+                        {{plan.titre}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Level filter -->
+            <mat-form-field class="w-full lg:w-48">
+                <mat-label>Level</mat-label>
+                <mat-select [formControl]="levelFilter" multiple>
+                    <mat-option *ngFor="let level of levelOptions" [value]="level.value">
+                        <span [class]="level.color" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                            Level {{level.value}}
+                        </span>
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            
+            <!-- Refresh button -->
+            <button
+                mat-icon-button
+                matTooltip="Refresh"
+                (click)="loadVariables()">
+                <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+            
+            <!-- Loading -->
+            <div *ngIf="loading" class="flex justify-center items-center h-64">
+                <mat-spinner diameter="48"></mat-spinner>
+            </div>
+
+            <!-- Table content -->
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+
+                    <!-- Selection column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef class="w-12">
+                            <mat-checkbox
+                              [checked]="selectedVariables.length === dataSource.data.length"
+                              [indeterminate]="selectedVariables.length > 0 && selectedVariables.length < dataSource.data.length"
+                              (change)="toggleAllSelection($event.checked)">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let variable" class="w-12">
+                            <mat-checkbox
+                                [checked]="isSelected(variable)"
+                                (change)="toggleSelection(variable)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+
+                    <!-- Description column -->
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Description
+                        </th>
+                        <td mat-cell *matCellDef="let variable">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-primary cursor-pointer hover:underline" 
+                                      (click)="viewVariable(variable)">
+                                    {{variable.description}}
+                                </span>
+                                <div class="flex items-center mt-1 space-x-2">
+                                    <span
+                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                                        [class]="getLevelColor(variable.niveau)">
+                                        L{{variable.niveau}}
+                                    </span>
+                                    <span *ngIf="variable.fige" 
+                                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                        <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+                                        Fixed
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Plan column -->
+                    <ng-container matColumnDef="plan">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Action Plan
+                        </th>
+                        <td mat-cell *matCellDef="let variable">
+                            <span class="text-sm font-medium">
+                                {{variable.planAction.titre}}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                <!-- Responsible column -->
+                <ng-container matColumnDef="responsible">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                        Responsible
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-xs font-medium">
+                                    {{variable.responsable.prenom.charAt(0)}}{{variable.responsable.nom.charAt(0)}}
+                                </span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium">{{getResponsibleName(variable)}}</div>
+                                <div class="text-xs text-secondary">{{variable.responsable.serviceLine}}</div>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Weight column -->
+                <ng-container matColumnDef="poids">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                        Weight
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <span class="text-sm font-medium">
+                            {{variable.poids | number:'1.1-2'}}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Level column -->
+                <ng-container matColumnDef="niveau">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                        Level
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            [class]="getLevelColor(variable.niveau)">
+                            Level {{variable.niveau}}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Progress column -->
+                <ng-container matColumnDef="progress">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                        Progress
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                <div 
+                                    class="h-2 rounded-full transition-all duration-300"
+                                    [class]="getProgressColor(variable.progress || 0)"
+                                    [style.width.%]="variable.progress || 0"
+                                    [class.bg-current]="true">
+                                </div>
+                            </div>
+                            <span class="text-sm font-medium min-w-12">
+                                {{variable.progress || 0}}%
+                            </span>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Status column -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                        Status
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            [class]="getStatusColor(variable.status || '')">
+                            {{variable.status || 'Not Set'}}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Actions column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                        Actions
+                    </th>
+                    <td mat-cell *matCellDef="let variable">
+                        <div class="flex items-center space-x-1">
+                            
+                            <!-- View -->
+                            <button
+                                mat-icon-button
+                                matTooltip="View Details"
+                                (click)="viewVariable(variable)">
+                                <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                            </button>
+                            
+                            <!-- Edit -->
+                            <button
+                                mat-icon-button
+                                matTooltip="Edit Variable"
+                                *ngIf="canEdit(variable)"
+                                (click)="editVariable(variable)">
+                                <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                            </button>
+                            
+                            <!-- Update Progress -->
+                            <button
+                                mat-icon-button
+                                matTooltip="Update Progress"
+                                *ngIf="canEdit(variable)"
+                                [matMenuTriggerFor]="progressMenu">
+                                <mat-icon [svgIcon]="'heroicons_outline:arrow-trending-up'"></mat-icon>
+                            </button>
+                            
+                            <mat-menu #progressMenu="matMenu">
+                                <button mat-menu-item (click)="updateProgress(variable, 25)">25% Complete</button>
+                                <button mat-menu-item (click)="updateProgress(variable, 50)">50% Complete</button>
+                                <button mat-menu-item (click)="updateProgress(variable, 75)">75% Complete</button>
+                                <button mat-menu-item (click)="updateProgress(variable, 100)">100% Complete</button>
+                            </mat-menu>
+                            
+                            <!-- More actions -->
+                            <button
+                                mat-icon-button
+                                [matMenuTriggerFor]="actionsMenu"
+                                matTooltip="More Actions">
+                                <mat-icon [svgIcon]="'heroicons_outline:ellipsis-horizontal'"></mat-icon>
+                            </button>
+                            
+                            <mat-menu #actionsMenu="matMenu">
+                                <button mat-menu-item (click)="viewVariable(variable)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:document-magnifying-glass'"></mat-icon>
+                                    <span>View Details</span>
+                                </button>
+                                <button 
+                                    mat-menu-item 
+                                    *ngIf="canDelete(variable)"
+                                    (click)="deleteVariable(variable)">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                                    <span>Delete</span>
+                                </button>
+                            </mat-menu>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header and rows -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row 
+                    *matRowDef="let variable; columns: displayedColumns;" 
+                    class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                    (click)="viewVariable(variable)">
+                </tr>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <mat-paginator
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            [pageSize]="25"
+            showFirstLastButtons>
+        </mat-paginator>
+
+        <!-- Empty state -->
+        <div *ngIf="!loading && dataSource.data.length === 0" 
+             class="flex flex-col items-center justify-center py-16">
+            <mat-icon 
+                class="icon-size-24 text-hint mb-4"
+                [svgIcon]="'heroicons_outline:variable'">
+            </mat-icon>
+            <div class="text-2xl font-semibold mb-2">No action variables found</div>
+            <div class="text-secondary mb-6">Create your first action variable to start tracking measurable outcomes</div>
+            <button 
+                mat-flat-button 
+                color="primary"
+                (click)="createVariable()">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create Variable</span>
+            </button>
+        </div>
+    </div>
+</div>
