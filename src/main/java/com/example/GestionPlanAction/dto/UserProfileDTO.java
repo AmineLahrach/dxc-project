@@ -8,14 +8,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class UserProfileDTO {
-    private Long id;
-    private String nom;
-    private String prenom;
-    private String email;
-    private String username;
-    private Set<String> roles;
-    private String serviceLine;
-    private Boolean actif;
-    private java.time.LocalDateTime createdAt;
-    private java.time.LocalDateTime updatedAt;
+    public Long id;
+    public String nom;
+    public String prenom;
+    public String email;
+    public String username;
+    public String motDePasse;
+    public Set<Long> roles;
+    public Long serviceLine;
+    public Boolean actif;
+    public java.time.LocalDateTime createdAt;
+    public java.time.LocalDateTime updatedAt;
 }

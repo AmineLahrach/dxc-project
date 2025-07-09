@@ -2,10 +2,16 @@ package com.example.GestionPlanAction.controller;
 
 import org.springframework.http.ResponseEntity;
 // import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -44,5 +50,26 @@ public class TestController {
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("✅ Application is running successfully!");
+    }
+    
+    @GetMapping("/auth-debug")
+    public ResponseEntity<?> authDebug() {
+        Map<String, Object> response = new HashMap<>();
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            response.put("authenticated", auth.isAuthenticated());
+            response.put("principal", auth.getPrincipal().toString());
+            response.put("name", auth.getName());
+            response.put("authorities", auth.getAuthorities().stream()
+                .map(a -> a.getAuthority())
+                .collect(Collectors.toList()));
+            response.put("details", auth.getDetails() != null ? auth.getDetails().toString() : null);
+            
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("error", "No authentication found in SecurityContext");
+            return ResponseEntity.status(401).body(response);
+        }
     }
 }

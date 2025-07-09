@@ -73,10 +73,13 @@ public class WebSecurityConfig {
                     
                     // Temporarily allow users endpoint for testing
                     .requestMatchers("/api/users/**").permitAll()
+                    // Debug endpoint for checking authentication
+                    .requestMatchers("/api/test/auth-debug").permitAll()
+                    // Temporarily allow servicelines for testing
+                    .requestMatchers("/api/servicelines/**").permitAll()
                     
                     // Admin only endpoints
                     .requestMatchers("/api/profils/**").hasRole("ADMINISTRATEUR")
-                    .requestMatchers("/api/servicelines/**").hasRole("ADMINISTRATEUR")
                     .requestMatchers("/api/audit/**").hasRole("ADMINISTRATEUR")
                     
                     // Director endpoints

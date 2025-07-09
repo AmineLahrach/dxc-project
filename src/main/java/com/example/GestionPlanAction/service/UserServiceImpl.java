@@ -1,17 +1,27 @@
 package com.example.GestionPlanAction.service;
 
 import com.example.GestionPlanAction.model.User;
+import com.example.GestionPlanAction.repository.ProfilRepository;
+import com.example.GestionPlanAction.repository.ServiceLineRepository;
 import com.example.GestionPlanAction.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private ServiceLineRepository serviceLineRepository;
+
+    @Autowired
+    private ProfilRepository profilRepository;
 
     @Override
     public List<User> getAll() {
@@ -46,4 +56,26 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public User createWithRelations(User user, Long serviceLineId, Set<Long> profileIds) {
+        if (serviceLineId != null) {
+            user.setServiceLine(serviceLineRepository.findById(serviceLineId).orElse(null));
+        }
+        if (profileIds != null && !profileIds.isEmpty()) {
+            user.setProfils(new HashSet<>(profilRepository.findAllById(profileIds)));
+        }
+        return repository.save(user);
+    }
+
+    @Override
+    public User updateWithRelations(Long id, User user, Long serviceLineId, Set<Long> profileIds) {
+        if (serviceLineId != null) {
+            user.setServiceLine(serviceLineRepository.findById(serviceLineId).orElse(null));
+        }
+        if (profileIds != null && !profileIds.isEmpty()) {
+            user.setProfils(new HashSet<>(profilRepository.findAllById(profileIds)));
+        }
+        return repository.save(user);
+    }    
 }

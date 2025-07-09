@@ -4,7 +4,6 @@ import com.example.GestionPlanAction.dto.JwtResponseDTO;
 import com.example.GestionPlanAction.dto.LoginRequestDTO;
 import com.example.GestionPlanAction.dto.MessageResponseDTO;
 import com.example.GestionPlanAction.dto.SignupRequestDTO;
-import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.repository.UserRepository;
 import com.example.GestionPlanAction.security.JwtUtils;
@@ -47,10 +46,17 @@ public class AuthController {
                             loginRequest.getMotDePasse()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
-
+            
             // Fix: Get UserPrincipal instead of User from authentication
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            
+            // Log the authorities before generating token
+            System.out.println("User " + userPrincipal.getUsername() + " has authorities: " + 
+                userPrincipal.getAuthorities().stream()
+                    .map(auth -> auth.getAuthority())
+                    .collect(java.util.stream.Collectors.joining(", ")));
+            
+            String jwt = jwtUtils.generateJwtToken(authentication);
             
             // Extract roles from authorities
             Set<String> roles = new HashSet<>();
@@ -60,6 +66,14 @@ public class AuthController {
                     roles.add(role.substring(5)); // Remove "ROLE_" prefix
                 }
             });
+            
+            // Check if we have any roles - this is crucial for authorization
+            if (roles.isEmpty()) {
+                System.out.println("WARNING: User " + userPrincipal.getUsername() + " has no roles assigned!");
+            } else {
+                System.out.println("User " + userPrincipal.getUsername() + " has roles: " + 
+                    String.join(", ", roles));
+            }
 
             return ResponseEntity.ok(new JwtResponseDTO(jwt,
                     userPrincipal.getId(),

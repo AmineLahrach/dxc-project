@@ -1,8 +1,10 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.UserProfileDTO;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,13 +27,29 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody User u) {
-        return service.create(u);
+    public User create(@RequestBody UserProfileDTO dto) {
+        User u = new User();
+        u.setNom(dto.getNom());
+        u.setPrenom(dto.getPrenom());
+        u.setEmail(dto.getEmail());
+        u.setUsername(dto.getUsername());
+        u.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
+        u.setActif(dto.actif != null ? dto.actif : true);
+        return service.createWithRelations(u, dto.serviceLine, dto.roles);
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User u) {
-        return service.update(id, u);
+    public User update(@PathVariable Long id, @RequestBody UserProfileDTO dto) {
+        User existingUser = service.getById(id);
+        if (dto.motDePasse != null && !dto.motDePasse.equals(existingUser.getMotDePasse())) {
+            existingUser.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
+        }
+        existingUser.setNom(dto.nom);
+        existingUser.setPrenom(dto.prenom);
+        existingUser.setEmail(dto.email);
+        existingUser.setUsername(dto.username);
+        existingUser.setActif(dto.actif != null ? dto.actif : existingUser.getActif());
+        return service.updateWithRelations(id, existingUser, dto.serviceLine, dto.roles);
     }
 
     @DeleteMapping("/{id}")

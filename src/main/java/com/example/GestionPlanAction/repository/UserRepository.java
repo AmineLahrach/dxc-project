@@ -11,8 +11,8 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     
-    // Method needed for authentication
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
+    // Method needed for authentication - EAGER fetch to ensure profiles are loaded
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
     Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String username, @Param("usernameOrEmail") String email);
     
     // Additional methods for user management
@@ -25,6 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Boolean existsByEmail(String email);
     
     // Method to load user with all relations for security context
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.id = :id")
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.id = :id")
     Optional<User> findByIdWithProfiles(@Param("id") Long id);
+    
+    // Check if user has any profiles
+    @Query("SELECT COUNT(p) > 0 FROM User u JOIN u.profils p WHERE u.username = :username")
+    boolean hasAnyProfile(@Param("username") String username);
 }

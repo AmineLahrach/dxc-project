@@ -24,6 +24,27 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
         logger.error("Unauthorized error: {}", authException.getMessage());
+        logger.error("Request URI: {}, Method: {}", request.getRequestURI(), request.getMethod());
+        
+        // Check if there's an Authorization header and log it (partially)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null) {
+            if (authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                logger.error("Token provided (first 10 chars): {}...", 
+                    token.length() > 10 ? token.substring(0, 10) : token);
+            } else {
+                logger.error("Authorization header does not start with 'Bearer '");
+            }
+        } else {
+            logger.error("No Authorization header provided");
+        }
+        
+        // Get detailed exception cause if available
+        Throwable cause = authException.getCause();
+        if (cause != null) {
+            logger.error("Root cause: {}", cause.getMessage());
+        }
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
