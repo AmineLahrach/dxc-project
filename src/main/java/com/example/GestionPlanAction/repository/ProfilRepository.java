@@ -14,6 +14,6 @@ public interface ProfilRepository extends JpaRepository<Profil, Long> {
     
     boolean existsByNom(String nom);
 
-    @Query("SELECT p.nom FROM Profil p JOIN p.utilisateurs u WHERE u.id = :userId")
+    @Query("SELECT p.nom FROM Profil p JOIN p.users u WHERE u.id = :userId")
     List<String> findProfileNamesByUserId(@Param("userId") Long userId);
 }

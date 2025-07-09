@@ -29,9 +29,12 @@ public class User {
     private String motDePasse;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "profil_utilisateur_association",
-            joinColumns = @JoinColumn(name = "idUtilisateur"),
-            inverseJoinColumns = @JoinColumn(name = "idProfil"))
+    @JoinTable(
+        name = "profil_utilisateur_association",
+        // match your actual DB columns (snake_case)
+        joinColumns        = @JoinColumn(name = "id_utilisateur", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "id_profil",     referencedColumnName = "id")
+    )
     @JsonIgnore
     private Set<Profil> profils = new HashSet<>();
 

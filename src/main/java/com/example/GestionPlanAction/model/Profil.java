@@ -22,7 +22,7 @@ public class Profil {
     private String nom;
 
     @ManyToMany(mappedBy = "profils", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private Set<User> utilisateurs = new HashSet<>();
+    @JsonIgnore // To avoid circular references in JSON serialization`
+    private Set<User> users = new HashSet<>();
 
 }

@@ -1,6 +1,8 @@
 package com.example.GestionPlanAction.controller;
 
 import com.example.GestionPlanAction.dto.UserProfileDTO;
+import com.example.GestionPlanAction.dto.UserResponseDTO;
+import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +18,23 @@ public class UserController {
     @Autowired
     private UserService service;
 
+    // @GetMapping("/api/users-with-profiles")
+    // public List<UserWithProfilesDTO> getAllUsersWithProfiles() {
+    //     return service.getAllUsersWithProfiles();
+    // }
+
+    // @GetMapping
+    // public List<UserResponseDTO> getAll() {
+    //     return service.getAll();
+    // }
+
     @GetMapping
-    public List<User> getAll() {
-        return service.getAll();
+    public List<UserWithProfilesDTO> getAll() {
+        return service.getAllUsersWithProfiles();
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable Long id) {
+    public UserResponseDTO getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
@@ -40,7 +52,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public User update(@PathVariable Long id, @RequestBody UserProfileDTO dto) {
-        User existingUser = service.getById(id);
+        User existingUser = service.findEntityById(id);
         if (dto.motDePasse != null && !dto.motDePasse.equals(existingUser.getMotDePasse())) {
             existingUser.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
         }
