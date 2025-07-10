@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.service;
 
+import com.example.GestionPlanAction.dto.UserProfileDTO;
 import com.example.GestionPlanAction.dto.UserResponseDTO;
 import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
 import com.example.GestionPlanAction.model.User;
@@ -13,10 +14,10 @@ public interface UserService {
     User create(User user);
     User update(Long id, User user);
     void delete(Long id);
-
+    void bulkDelete(List<Long> ids);
     User createWithRelations(User user, Long serviceLineId, Set<Long> profileIds);
-    User updateWithRelations(Long id, User user, Long serviceLineId, Set<Long> profileIds);
-
+    UserResponseDTO updateWithRelations(Long id, UserProfileDTO userDto);
+    UserResponseDTO updateUserStatus(Long id, Boolean actif);
     List<UserWithProfilesDTO> getAllUsersWithProfiles();
     User findEntityById(Long id);
 }

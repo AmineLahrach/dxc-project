@@ -1,5 +1,7 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.IdsRequest;
+import com.example.GestionPlanAction.dto.StatusUpdateRequest;
 import com.example.GestionPlanAction.dto.UserProfileDTO;
 import com.example.GestionPlanAction.dto.UserResponseDTO;
 import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
@@ -51,21 +53,31 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody UserProfileDTO dto) {
-        User existingUser = service.findEntityById(id);
-        if (dto.motDePasse != null && !dto.motDePasse.equals(existingUser.getMotDePasse())) {
-            existingUser.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
-        }
-        existingUser.setNom(dto.nom);
-        existingUser.setPrenom(dto.prenom);
-        existingUser.setEmail(dto.email);
-        existingUser.setUsername(dto.username);
-        existingUser.setActif(dto.actif != null ? dto.actif : existingUser.getActif());
-        return service.updateWithRelations(id, existingUser, dto.serviceLine, dto.roles);
+    public UserResponseDTO update(@PathVariable Long id, @RequestBody UserProfileDTO dto) {
+        // User existingUser = service.findEntityById(id);
+        // if (dto.motDePasse != null && !dto.motDePasse.equals(existingUser.getMotDePasse())) {
+        //     existingUser.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
+        // }
+        // existingUser.setNom(dto.nom);
+        // existingUser.setPrenom(dto.prenom);
+        // existingUser.setEmail(dto.email);
+        // existingUser.setUsername(dto.username);
+        // existingUser.setActif(dto.actif != null ? dto.actif : existingUser.getActif());
+        return service.updateWithRelations(id, dto);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @PatchMapping("/{id}/status")
+    public UserResponseDTO updateStatus(@PathVariable Long id, @RequestBody StatusUpdateRequest statusUpdateRequest) {
+        return service.updateUserStatus(id, statusUpdateRequest.getActif());
+    }
+
+    @PostMapping("/bulk-delete")
+    public void bulkDelete(@RequestBody IdsRequest idsRequest) {
+        service.bulkDelete(idsRequest.getIds());
     }
 }

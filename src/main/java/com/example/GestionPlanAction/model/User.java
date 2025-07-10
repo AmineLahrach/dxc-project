@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,7 +18,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @AllArgsConstructor
 @Entity
 @NoArgsConstructor
-@Table()
+@Table(name = "user")
+@EqualsAndHashCode(exclude = {"profils", "serviceLine", "variableActions", "notifications"}) // ✅ CRITICAL
+@ToString(exclude = {"profils", "serviceLine", "variableActions", "notifications"})          // ✅ CRITICAL
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,12 +32,11 @@ public class User {
     private String username;
     private String motDePasse;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinTable(
         name = "profil_utilisateur_association",
-        // match your actual DB columns (snake_case)
-        joinColumns        = @JoinColumn(name = "id_utilisateur", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "id_profil",     referencedColumnName = "id")
+        joinColumns = @JoinColumn(name = "id_utilisateur", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "id_profil", referencedColumnName = "id")
     )
     @JsonIgnore
     private Set<Profil> profils = new HashSet<>();
@@ -43,8 +46,9 @@ public class User {
     @JsonIgnore
     private ServiceLine serviceLine;
 
-    @OneToMany(mappedBy = "responsable")
-    private List<VariableAction> variableActions;
+    @OneToMany(mappedBy = "responsable", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<VariableAction> variableActions = new ArrayList<>();
 
     @OneToMany(mappedBy = "utilisateur", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
