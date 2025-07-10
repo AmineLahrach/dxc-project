@@ -1,25 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ProfileService } from './profile-service';
 import { Profile } from '../../models/business.models';
-import { CommonModule } from '@angular/common';
+import { SharedModule } from '../shared/shared.module';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-profile-form',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [SharedModule, FormsModule, ReactiveFormsModule],
   templateUrl: './profile-form-component.html',
+  standalone: true
 })
 export class ProfileFormComponent implements OnInit {
+  @Input() profile: Profile = { nom: '' };
+  @Output() save = new EventEmitter<Profile>();
+  @Output() cancel = new EventEmitter<void>();
+  @Output() delete = new EventEmitter<number>();
+  
   profileForm: FormGroup;
-  isEditMode: boolean = false;
-  profileId?: number;
+  loading = false;
 
   constructor(
     private fb: FormBuilder, 
-    private profileService: ProfileService,
-    private route: ActivatedRoute,
-    private router: Router
+    private _snackBar: MatSnackBar
   ) {
     this.profileForm = this.fb.group({
       nom: ['', Validators.required],
@@ -27,56 +31,47 @@ export class ProfileFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Get profile ID from route parameters if it exists
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.profileId = +id;
-        this.isEditMode = true;
-        this.loadProfile(this.profileId);
-      }
-    });
-  }
-
-  loadProfile(id: number): void {
-    this.profileService.getProfileById(id).subscribe(
-      (profile: Profile) => {
-        this.profileForm.patchValue(profile);
-      },
-      (error) => {
-        console.error('Error loading profile:', error);
-      }
-    );
+    // Initialize form with profile data
+    if (this.profile) {
+      this.profileForm.patchValue({
+        nom: this.profile.nom
+      });
+    }
   }
 
   onSubmit(): void {
     if (this.profileForm.valid) {
-      const profileData: Profile = this.profileForm.value;
-      if (this.isEditMode && this.profileId) {
-        this.profileService.updateProfile(this.profileId, profileData).subscribe(
-          (updatedProfile) => {
-            console.log('Profile updated successfully', updatedProfile);
-            this.router.navigate(['/profiles']);
-          },
-          (error) => {
-            console.error('Error updating profile:', error);
-          }
-        );
-      } else {
-        this.profileService.createProfile(profileData).subscribe(
-          (newProfile) => {
-            console.log('Profile created successfully', newProfile);
-            this.router.navigate(['/profiles']);
-          },
-          (error) => {
-            console.error('Error creating profile:', error);
-          }
-        );
-      }
+      this.loading = true;
+      const updatedProfile: Profile = {
+        ...this.profile,
+        ...this.profileForm.value
+      };
+      
+      this.save.emit(updatedProfile);
+      
+      // Show success message
+      this._snackBar.open('Profile saved successfully', 'Close', { 
+        duration: 3000
+      });
+      
+      this.loading = false;
+    } else {
+      this.profileForm.markAllAsTouched();
+      this._snackBar.open('Please fix the errors in the form', 'Close', { 
+        duration: 3000
+      });
     }
   }
 
-  cancel(): void {
-    this.router.navigate(['/profiles']);
+  onCancel(): void {
+    this.cancel.emit();
+  }  
+  
+  getFieldError(fieldName: string): string {
+    const control = this.profileForm.get(fieldName);
+    if (control?.errors && control.touched) {
+      if (control.errors['required']) return 'This field is required';
+    }
+    return '';
   }
 }

@@ -61,7 +61,7 @@
                 <mat-label>Service Line</mat-label>
                 <mat-select formControlName="serviceLineId">
                     <mat-option *ngFor="let line of serviceLines" [value]="line.id">
-                        {{ line.name }}
+                        {{ line.nom }}
                     </mat-option>
                 </mat-select>
                 <mat-error>{{ getErrorMessage('serviceLineId') }}</mat-error>
@@ -70,9 +70,9 @@
             <!-- Roles -->
             <mat-form-field>
                 <mat-label>Roles</mat-label>
-                <mat-select formControlName="roles" multiple>
-                    <mat-option *ngFor="let role of availableRoles" [value]="role.value">
-                        {{ role.label }}
+                <mat-select formControlName="profileId" multiple>
+                    <mat-option *ngFor="let role of profiles" [value]="role.id">
+                        {{ role.nom }}
                     </mat-option>
                 </mat-select>
                 <mat-error>{{ getErrorMessage('roles') }}</mat-error>
@@ -113,10 +113,10 @@
         <div class="mb-6" *ngIf="userForm.get('roles')?.value?.length">
             <div class="text-sm text-secondary mb-2">Selected roles:</div>
             <div class="flex flex-wrap gap-2">
-                <span *ngFor="let role of userForm.get('roles')?.value" 
+                <span *ngFor="let roleId of userForm.get('profileId')?.value" 
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    [class]="getRoleChipClass(role)">
-                    {{role}}
+                    [class]="getRoleChipClass(roleId)">
+                    {{ getProfileNameById(roleId) }}
                 </span>
             </div>
         </div>

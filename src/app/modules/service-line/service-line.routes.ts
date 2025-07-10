@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { ServiceLineListComponent } from './service-line-list.component';
+import { ServiceLineFormComponent } from './service-line-form.component';
 
 export default [
   {
@@ -9,12 +10,12 @@ export default [
   },
   {
     path: 'create',
-    component: ServiceLineListComponent,
+    component: ServiceLineFormComponent,
     title: 'Create Service Line'
   },
   {
     path: 'edit/:id',
-    component: ServiceLineListComponent,
+    component: ServiceLineFormComponent,
     title: 'Edit Service Line'
   }
 ] as Routes;

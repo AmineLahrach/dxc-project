@@ -28,7 +28,7 @@
             <button
                 mat-flat-button
                 color="primary"
-                (click)="openProfileForm()">
+                (click)="createProfile()">
                 <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
                 <span class="ml-2">Add New Profile</span>
             </button>
@@ -37,19 +37,40 @@
 
     <!-- Main content -->
     <div class="flex-auto p-6 sm:p-10">
+        <!-- Profile Form -->
+        <div *ngIf="selectedProfile" class="mb-8 bg-card rounded-2xl shadow overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <div class="flex items-center">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="isEditing ? 'heroicons_outline:pencil' : 'heroicons_outline:plus'"></mat-icon>
+                    <h3 class="text-lg font-semibold">{{ isEditing ? 'Edit' : 'Create' }} Profile</h3>
+                </div>
+                <button mat-icon-button (click)="cancelEdit()">
+                    <mat-icon svgIcon="heroicons_outline:x-mark"></mat-icon>
+                </button>
+            </div>
+            <div class="p-6">
+                <app-profile-form
+                  [profile]="selectedProfile"
+                  (save)="saveProfile($event)"
+                  (cancel)="cancelEdit()">
+                </app-profile-form>
+            </div>
+        </div>
+
         <!-- Search and filters -->
-        <div class="mb-8">
+        <div class="mb-8" *ngIf="!selectedProfile">
             <mat-form-field class="w-full sm:w-80">
                 <mat-icon matPrefix class="ml-4 mr-2" svgIcon="heroicons_outline:magnifying-glass"></mat-icon>
                 <input 
                     matInput 
                     placeholder="Search profiles"
-                    #searchInput>
+                    #searchInput
+                    (keyup)="applyFilter($event)">
                 <button 
                     *ngIf="searchInput.value"
                     mat-icon-button 
                     matSuffix 
-                    (click)="searchInput.value=''"
+                    (click)="searchInput.value=''; clearFilter()"
                     aria-label="Clear">
                     <mat-icon svgIcon="heroicons_outline:x-mark"></mat-icon>
                 </button>
@@ -57,18 +78,12 @@
         </div>
 
         <!-- Profiles table -->
-        <div class="bg-card rounded-2xl shadow overflow-hidden">
-            <table mat-table [dataSource]="profiles" class="w-full">
-                
-                <!-- ID Column -->
-                <ng-container matColumnDef="id">
-                    <th mat-header-cell *matHeaderCellDef> ID </th>
-                    <td mat-cell *matCellDef="let profile"> {{profile.id}} </td>
-                </ng-container>
+        <div class="bg-card rounded-2xl shadow overflow-hidden" *ngIf="!selectedProfile">
+            <table mat-table [dataSource]="profiles" matSort #sort="matSort" class="w-full">
                 
                 <!-- Name Column -->
                 <ng-container matColumnDef="nom">
-                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
                     <td mat-cell *matCellDef="let profile"> {{profile.nom}} </td>
                 </ng-container>
                 
@@ -84,7 +99,7 @@
                                 <mat-icon svgIcon="heroicons_outline:pencil"></mat-icon>
                                 <span>Edit</span>
                             </button>
-                            <button mat-menu-item (click)="deleteProfile(profile.id)">
+                            <button mat-menu-item (click)="deleteProfile(profile)" color="warn">
                                 <mat-icon svgIcon="heroicons_outline:trash" class="text-warn"></mat-icon>
                                 <span>Delete</span>
                             </button>
@@ -92,28 +107,40 @@
                     </td>
                 </ng-container>
             
-                <tr mat-header-row *matHeaderRowDef="['id', 'nom', 'actions']"></tr>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr 
                     mat-row 
-                    *matRowDef="let profile; columns: ['id', 'nom', 'actions']"
+                    *matRowDef="let profile; columns: displayedColumns"
                     class="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                </tr>
+                
+                <!-- No results row -->
+                <tr class="mat-row" *matNoDataRow>
+                    <td class="mat-cell p-8 text-center" colspan="2">
+                        <ng-container *ngIf="searchInput?.value; else noRecords">
+                            No profiles matching "{{searchInput?.value}}"
+                        </ng-container>
+                        <ng-template #noRecords>
+                            No profiles found
+                        </ng-template>
+                    </td>
                 </tr>
             </table>
             
-            <!-- No profiles message -->
+            <!-- Empty state -->
             <div 
-                *ngIf="profiles.length === 0" 
+                *ngIf="profiles.data.length === 0" 
                 class="p-8 text-center">
                 <mat-icon 
                     class="icon-size-16 text-hint mb-4"
-                    svgIcon="heroicons_outline:user-group">
+                    svgIcon="heroicons_outline:queue-list">
                 </mat-icon>
                 <div class="text-lg font-medium mb-2">No profiles found</div>
                 <div class="text-secondary mb-4">Create a new profile to get started</div>
                 <button
                     mat-flat-button
                     color="primary"
-                    (click)="openProfileForm()">
+                    (click)="createProfile()">
                     <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
                     <span class="ml-2">Add New Profile</span>
                 </button>
@@ -121,7 +148,8 @@
             
             <!-- Paginator -->
             <mat-paginator 
-                [pageSizeOptions]="[5, 10, 25]"
+                #paginator="matPaginator"
+                [pageSizeOptions]="[5, 10, 25, 100]"
                 showFirstLastButtons
                 aria-label="Select page of profiles">
             </mat-paginator>

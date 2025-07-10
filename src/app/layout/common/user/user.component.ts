@@ -73,12 +73,12 @@ export class UserComponent implements OnInit, OnDestroy {
         return 'images/avatars/avatar-placeholder.jpg';
     }
 
-    getPrimaryRole(): string {
-        if (this.user?.roles?.length > 0) {
-            // Remove ROLE_ prefix and format
-            const role = this.user.roles[0].replace('ROLE_', '');
-            return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase().replace('_', ' ');
-        }
-        return 'User';
-    }
+    // getPrimaryRole(): string {
+    //     if (this.user?.roles?.length > 0) {
+    //         // Remove ROLE_ prefix and format
+    //         const role = this.user.roles[0].replace('ROLE_', '');
+    //         return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase().replace('_', ' ');
+    //     }
+    //     return 'User';
+    // }
 }

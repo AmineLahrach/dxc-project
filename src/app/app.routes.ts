@@ -82,7 +82,7 @@ export const appRoutes: Route[] = [
         path: '',
         canActivate: [AuthGuard],
         canActivateChild: [AuthGuard],
-        data: { roles: ['admin'] },
+        // data: { roles: ['admin'] },
         component: LayoutComponent,
         resolve: {
             initialData: initialDataResolver

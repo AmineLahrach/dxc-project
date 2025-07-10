@@ -1,39 +1,48 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { ServiceLine } from 'app/models/business.models';
 import { ServiceLineService } from './service-line-service';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { RouterModule } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { SharedModule } from '../shared/shared.module';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
+import { ServiceLineFormComponent } from './service-line-form.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../shared/confirm-dialog-component/confirm-dialog-component';
 
 @Component({
   selector: 'app-service-line-list',
-  imports: [CommonModule, MatIconModule, ReactiveFormsModule,
-      MatFormFieldModule, MatTableModule, MatInputModule,
-      MatPaginatorModule, RouterModule, MatButtonModule
-    ],
-  templateUrl: './service-line-list-component.html'
+  imports: [SharedModule, ServiceLineFormComponent],
+  templateUrl: './service-line-list-component.html',
+  standalone: true
 })
-export class ServiceLineListComponent implements OnInit {
-  serviceLines: ServiceLine[] = [];
+export class ServiceLineListComponent implements OnInit, AfterViewInit {
+  serviceLines: MatTableDataSource<ServiceLine>;
   selectedServiceLine: ServiceLine | null = null;
   isEditing = false;
+  displayedColumns: string[] = ['nom', 'actions'];
+  
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  constructor(private serviceLineService: ServiceLineService) {}
+  constructor(private serviceLineService: ServiceLineService, private dialog: MatDialog) {
+    this.serviceLines = new MatTableDataSource<ServiceLine>([]);
+  }
 
   ngOnInit(): void {
     this.loadServiceLines();
+  }
+  
+  ngAfterViewInit(): void {
+    if (this.serviceLines) {
+      this.serviceLines.sort = this.sort;
+      this.serviceLines.paginator = this.paginator;
+    }
   }
 
   loadServiceLines(): void {
     this.serviceLineService.getServiceLines().subscribe(
       (data: ServiceLine[]) => {
-        this.serviceLines = data;
+        this.serviceLines.data = data;
       },
       (error) => {
         console.error('Error fetching service lines', error);
@@ -76,20 +85,48 @@ export class ServiceLineListComponent implements OnInit {
     }
   }
 
-  deleteServiceLine(id: number): void {
-    if (confirm('Are you sure you want to delete this service line?')) {
-      this.serviceLineService.deleteServiceLine(id).subscribe(
-        () => {
-          this.loadServiceLines();
-        },
-        (error) => {
-          console.error('Error deleting service line', error);
-        }
-      );
-    }
+  deleteServiceLine(serviceLine: ServiceLine): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Service Line',
+        message: `Are you sure you want to delete the service line "${serviceLine.nom}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.serviceLineService.deleteServiceLine(serviceLine.id).subscribe({
+          next: () => {
+            this.loadServiceLines();
+          },
+          error: (error) => {
+            console.error('Error deleting service line:', error);
+          }
+        });
+      }
+    });
   }
 
   cancelEdit(): void {
     this.selectedServiceLine = null;
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.serviceLines.filter = filterValue.trim().toLowerCase();
+
+    if (this.serviceLines.paginator) {
+      this.serviceLines.paginator.firstPage();
+    }
+  }
+
+  clearFilter(): void {
+    this.serviceLines.filter = '';
+    if (this.serviceLines.paginator) {
+      this.serviceLines.paginator.firstPage();
+    }
   }
 }

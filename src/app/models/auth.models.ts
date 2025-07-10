@@ -1,3 +1,5 @@
+import { Profile } from "./business.models";
+
 // src/app/core/models/auth.models.ts
 export interface LoginRequest {
   usernameOrEmail: string;
@@ -38,5 +40,5 @@ export interface SignupRequest {
   email: string;
   motDePasse: string;
   roles: string[];
-  serviceLineId: number;
+  serviceLine: number;
 }

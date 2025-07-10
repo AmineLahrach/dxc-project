@@ -1,40 +1,17 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
-import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 import { ExerciceService, Exercice } from './exercice.service';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
-export interface ExerciseDialogData {
-  isEdit: boolean;
-  exercise?: {
-    id: number;
-    annee: number;
-    verrouille: boolean;
-  };
-}
+import { SharedModule } from '../shared/shared.module';
 
 @Component({
   selector: 'app-exercise-upsert',
-  standalone: true,
-  imports: [
-    CommonModule, MatLabel, MatDialogModule,
-    FormsModule, ReactiveFormsModule, MatFormFieldModule,
-    RouterModule, MatButtonModule,
-    MatIconModule, MatInputModule, MatCheckboxModule,
-    MatProgressSpinnerModule
-  ],
-  templateUrl: './exercice-upsert.component.html',
+  imports: [SharedModule],
+  templateUrl: './exercice-upsert.component.html'
 })
-export class ExerciseUpsertComponent implements OnInit {
+export class ExerciseUpsertComponent implements OnInit, OnDestroy {
   exerciceForm: FormGroup;
   isSubmitting = false;
   isEditMode = false;
@@ -46,33 +23,28 @@ export class ExerciseUpsertComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    public dialogRef: MatDialogRef<ExerciseUpsertComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ExerciseDialogData,
     private _exerciceService: ExerciceService,
     private _router: Router,
     private _route: ActivatedRoute,
     private _snackBar: MatSnackBar
-  ) {}
+  ) {
+    this.exerciceForm = this.fb.group({
+      id: [0],
+      annee: [
+        this.currentYear, 
+        [Validators.required, Validators.min(2000), Validators.max(2100)]
+      ],
+      verrouille: [false]
+    });
+  }
   
   ngOnInit(): void {
-    this.initializeForm();
     this.checkRouteParams();
   }
 
   ngOnDestroy(): void {
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
-  }
-
-  private initializeForm(): void {
-    this.exerciceForm = this.fb.group({
-      id: [this.data.exercise?.id || 0],
-      annee: [
-        this.data.exercise?.annee || this.currentYear, 
-        [Validators.required, Validators.min(2000), Validators.max(2100)]
-      ],
-      verrouille: [this.data.exercise?.verrouille || false]
-    });
   }
 
   private checkRouteParams(): void {
@@ -118,7 +90,7 @@ export class ExerciseUpsertComponent implements OnInit {
     }
 
     this.loading = true;
-    const exerciceData: Exercice = this.exerciceForm.value;
+    const exerciceData = this.exerciceForm.value;
 
     if (this.isEditMode && this.exerciseId) {
       this._exerciceService.updateExercice(exerciceData)
@@ -127,7 +99,7 @@ export class ExerciseUpsertComponent implements OnInit {
           next: (response) => {
             this.loading = false;
             this._snackBar.open('Exercise updated successfully', 'Close', { duration: 3000 });
-            this._router.navigate(['/exercices']);
+            this._router.navigate(['/exercises']);
           },
           error: (error) => {
             console.error('Error updating exercice:', error);
@@ -136,13 +108,16 @@ export class ExerciseUpsertComponent implements OnInit {
           }
         });
     } else {
-      this._exerciceService.createExercice(exerciceData)
+      // Remove id field when creating a new exercise
+      const { id, ...exerciceDataWithoutId } = exerciceData;
+      
+      this._exerciceService.createExercice(exerciceDataWithoutId)
         .pipe(takeUntil(this._unsubscribeAll))
         .subscribe({
           next: (response) => {
             this.loading = false;
             this._snackBar.open('Exercise created successfully', 'Close', { duration: 3000 });
-            this._router.navigate(['/exercices']);
+            this._router.navigate(['/exercises']);
           },
           error: (error) => {
             console.error('Error creating exercice:', error);
@@ -164,6 +139,6 @@ export class ExerciseUpsertComponent implements OnInit {
   }
 
   cancel(): void {
-    this._router.navigate(['/exercices']);
+    this._router.navigate(['/exercises']);
   }
 }

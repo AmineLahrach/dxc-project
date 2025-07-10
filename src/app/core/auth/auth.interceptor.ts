@@ -49,14 +49,29 @@ export const authInterceptor = (
         catchError((error) => {
             // Catch "401 Unauthorized" responses
             if (error instanceof HttpErrorResponse && error.status === 401) {
-                // Sign out
-                authService.signOut();
-
-                // Reload the app
-                location.reload();
+                // Check if it's a real authentication failure or just an API error
+                // We'll only log out if it's a specific authentication endpoint or has a specific error message
+                const isAuthEndpoint = req.url.includes('/api/auth/');
+                const hasAuthError = error.error && (
+                    error.error.message === 'Invalid token' || 
+                    error.error.message === 'Token expired' ||
+                    error.error.message === 'Authentication failed'
+                );
+                
+                if (isAuthEndpoint || hasAuthError) {
+                    // It's a real authentication issue - sign out
+                    console.log('Authentication failed. Signing out...');
+                    authService.signOut();
+                    
+                    // Reload the app
+                    location.reload();
+                } else {
+                    // It's just an API error, let the calling component handle it
+                    console.warn('API returned 401 but not logging out: ', req.url);
+                }
             }
 
-            return throwError(error);
+            return throwError(() => error);
         })
     );
 };

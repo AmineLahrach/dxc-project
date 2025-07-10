@@ -10,29 +10,10 @@ export class AuthService {
     private _authenticated: boolean = false;
     private _httpClient = inject(HttpClient);
     private _userService = inject(UserService);
-    private baseUrl: string = 'http://localhost:8081/api/auth';
+    private baseUrl: string = 'http://localhost:8081/api/auth/';
 
     private _currentUser: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
     public currentUser$ = this._currentUser.asObservable();
-
-    // Static mock data for when backend is not available
-    private readonly _mockUser: User = {
-        id: '1',
-        avatar: 'img/brian-hughes.jpg',
-        nom: 'Admin',
-        prenom: 'Super',
-        email: 'admin@example.com',
-        username: 'admin',
-        roles: [],
-        serviceLine: "Technologies de l'Information",
-        actif: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        status: 'online'
-    };
-
-    private readonly _mockToken: string =
-        'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc1MTk1MTcwNiwiZXhwIjoxNzUyMDM4MTA2fQ.sqxEJrdCc-KowbODIEdck7bSRg0z0vPK4cFBI0UsHvCtsPlivVSp-ULIbEpQia9a71s6UdvJBBgg-BoC3IjjBw';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -108,7 +89,7 @@ export class AuthService {
             
         //     // Set the authenticated flag to true
         //     this._authenticated = true;
-                        
+        //                        
         //     // Store the user on the user service
         //     this._userService.user = {...mockResponse.user};
             
@@ -127,7 +108,7 @@ export class AuthService {
         
         // ORIGINAL IMPLEMENTATION - uncomment for production
         
-        return this._httpClient.post(`${this.baseUrl}/login`, credentials).pipe(
+        return this._httpClient.post(`${this.baseUrl}login`, credentials).pipe(
             switchMap((response: any) => {
                 // Store the access token in the local storage
                 this.accessToken = response.token;
@@ -162,69 +143,28 @@ export class AuthService {
     }
 
     /**
-     * Sign in using the access token
+     * Sign in using the access token (local only, no backend call)
      */
     signInUsingToken(): Observable<any> {
-        // MOCK IMPLEMENTATION
-        console.log('Mock sign in with token');
-        
         // Get user from local storage if available
         const storedUser = this.getCurrentUserFromStorage();
-        
-        if (storedUser) {
+
+        if (storedUser && !AuthUtils.isTokenExpired(this.accessToken)) {
             // Set the authenticated flag to true
             this._authenticated = true;
-            
+
             // Store the user on the user service
-            this._userService.user = { nom: storedUser.nom, ...storedUser };
-            
+            this._userService.user = { ...storedUser };
+
             // Update current user observable
             this._currentUser.next(storedUser);
-            
+
             // Return success
             return of(true);
         }
-        
-        // No stored user, return false
+
+        // No stored user or token expired, return false
         return of(false);
-        
-        // ORIGINAL IMPLEMENTATION - uncomment for production
-        /*
-        // Sign in using the token
-        return this._httpClient
-            .post('api/auth/sign-in-with-token', {
-                accessToken: this.accessToken,
-            })
-            .pipe(
-                catchError(() =>
-                    // Return false
-                    of(false)
-                ),
-                switchMap((response: any) => {
-                    // Replace the access token with the new one if it's available on
-                    // the response object.
-                    //
-                    // This is an added optional step for better security. Once you sign
-                    // in using the token, you should generate a new one on the server
-                    // side and attach it to the response object. Then the following
-                    // piece of code can replace the token with the refreshed one.
-                    if (response.accessToken) {
-                        this.accessToken = response.accessToken;
-                    }
-
-                    // Set the authenticated flag to true
-                    this._authenticated = true;
-
-                    // Store the user on the user service
-                    this._userService.user = response.user;
-                    // Update current user observable
-                    this._currentUser.next(response.user);
-
-                    // Return true
-                    return of(true);
-                })
-            );
-        */
     }
 
     /**

@@ -33,7 +33,7 @@ export interface Exercise {
 export interface ServiceLine {
   id?: number;
   nom: string;
-  description?: string;  
+  // description?: string;  
 }
 
 export interface Profile {

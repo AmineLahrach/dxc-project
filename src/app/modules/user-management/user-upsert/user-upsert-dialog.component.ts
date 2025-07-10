@@ -2,7 +2,7 @@ import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 // Angular Material Imports
@@ -19,11 +19,10 @@ import { MatChipsModule } from '@angular/material/chips';
 // User Service and Models
 import { UserService } from 'app/core/user/user.service';
 import { User, SignupRequest } from 'app/models/auth.models';
-
-interface ServiceLine {
-  id: number;
-  name: string;
-}
+import { ProfileService } from 'app/modules/profile-form/profile-service';
+import { ServiceLineService } from 'app/modules/service-line/service-line-service';
+import { Profile } from 'app/models/business.models';
+import { ServiceLine } from 'app/models/business.models';
 
 @Component({
   selector: 'app-user-upsert-dialog',
@@ -48,24 +47,16 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
   userForm: FormGroup;
   loading = false;
   isEditMode: boolean;
-  user: User | null = null;
+  user: any;
   
-  // Role options
-  availableRoles = [
-    { value: 'ADMIN', label: 'Administrator' },
-    { value: 'USER', label: 'User' },
-    { value: 'MANAGER', label: 'Manager' },
-    { value: 'AUDITOR', label: 'Auditor' }
-  ];
+  // Role options will be fetched from service
+  availableRoles = [];
   
-  // Service line options - these would be fetched from an API
-  serviceLines: ServiceLine[] = [
-    { id: 1, name: 'Finance' },
-    { id: 2, name: 'Human Resources' },
-    { id: 3, name: 'Operations' },
-    { id: 4, name: 'IT' },
-    { id: 5, name: 'Marketing' }
-  ];
+  // Service line options will be fetched from API
+  serviceLines: ServiceLine[] = [];
+  
+  // Profile options will be fetched from API
+  profiles: Profile[] = [];
   
   // Status options
   statusOptions = [
@@ -83,19 +74,80 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
     private _dialogRef: MatDialogRef<UserUpsertDialogComponent>,
     private _formBuilder: FormBuilder,
     private _userService: UserService,
+    private _profileService: ProfileService,
+    private _serviceLineService: ServiceLineService,
     private _snackBar: MatSnackBar
   ) {
     this.isEditMode = data.isEdit;
     this.user = data.user || null;
+    
+    // Initialize form with default values immediately
+    this.userForm = this._formBuilder.group({
+      nom: [this.user?.nom || '', [Validators.required, Validators.maxLength(50)]],
+      prenom: [this.user?.prenom || '', [Validators.required, Validators.maxLength(50)]],
+      email: [this.user?.email || '', [Validators.required, Validators.email]],
+      username: [this.user?.username || '', [Validators.required, Validators.minLength(4), Validators.maxLength(20)]],
+      motDePasse: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(6)]],
+      // roles: [this.user?.roles || ['USER'], [Validators.required]],
+      serviceLineId: [this.user?.serviceLineId ?? null, [Validators.required]],
+      profileId: [this.user?.profils ? this.user.profils.map(p => p.id) : [], [Validators.required]],
+      actif: [this.user?.actif ?? true],
+      status: [this.user?.status || 'online'],
+      avatar: [this.user?.avatar || '']
+    });
   }
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.fetchDropdownData();
+    // if (this.user) {
+    // this.userForm.patchValue({
+    //   serviceLineId: this.user.serviceLineId ?? null,
+    //   profileId: this.user.profils ? this.user.profils.map(p => p.id) : []
+    // });
+    console.log('User: ' + JSON.stringify(this.user));
+    console.log('Form Value: ' + JSON.stringify(this.userForm.value));
   }
 
   ngOnDestroy(): void {
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
+  }
+
+  private fetchDropdownData(): void {
+    this.loading = true;
+    
+    // Use forkJoin to make parallel API calls
+    forkJoin({
+      serviceLines: this._serviceLineService.getServiceLines(),
+      profiles: this._profileService.getProfiles()
+    })
+    .pipe(takeUntil(this._unsubscribeAll))
+    .subscribe({
+      next: (result) => {
+        this.serviceLines = result.serviceLines;
+        this.profiles = result.profiles;
+
+        if (this.user?.serviceLine) {
+          const serviceLineId = this.getServiceLineId(this.user.serviceLine);
+          this.userForm.get('serviceLineId')?.setValue(serviceLineId);
+        }
+
+        // Use setTimeout to defer loading state change and avoid ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.loading = false;
+        });
+      },
+      error: (error) => {
+        console.error('Error fetching dropdown data:', error);
+
+        setTimeout(() => {
+          this._snackBar.open('Failed to load form data. Please try again.', 'Close', { duration: 3000 });
+          this.loading = false;
+        });
+
+        this._dialogRef.close(false);
+      }
+    });
   }
 
   private initializeForm(): void {
@@ -105,8 +157,9 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
       email: [this.user?.email || '', [Validators.required, Validators.email]],
       username: [this.user?.username || '', [Validators.required, Validators.minLength(4), Validators.maxLength(20)]],
       motDePasse: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(6)]],
-      roles: [this.user?.roles || ['USER'], [Validators.required]],
+      // roles: [this.user?.roles || ['USER'], [Validators.required]],
       serviceLineId: [this.getServiceLineId(this.user?.serviceLine), [Validators.required]],
+      profileId: [[''], [Validators.required]],
       actif: [this.user?.actif ?? true],
       status: [this.user?.status || 'online'],
       avatar: [this.user?.avatar || '']
@@ -115,8 +168,19 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
 
   private getServiceLineId(serviceLineName: string | undefined): number | null {
     if (!serviceLineName) return null;
-    const serviceLine = this.serviceLines.find(sl => sl.name === serviceLineName);
+    const serviceLine = this.serviceLines.find(sl => sl.nom === serviceLineName);
     return serviceLine ? serviceLine.id : null;
+  }
+
+  private getProfileId(profileName: string | undefined): number | null {
+    if (!profileName) return null;
+    const profile = this.profiles.find(p => p.nom === profileName);
+    return profile ? profile.id : null;
+  }
+
+  private getProfileIds(profiles: Profile[] | undefined): number[] {
+    if (!profiles) return [];
+    return profiles.map(p => p.id);
   }
 
   onSubmit(): void {
@@ -142,21 +206,26 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
       email: formValue.email,
       username: formValue.username,
       motDePasse: formValue.motDePasse,
-      roles: formValue.roles,
-      serviceLineId: formValue.serviceLineId
+      roles: formValue.profileId ? formValue.profileId : [], // Use profileId for roles
+      serviceLine: formValue.serviceLineId,
     };
 
     this._userService.createUser(signupRequest)
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe({
         next: () => {
-          this._snackBar.open('User created successfully', 'Close', { duration: 3000 });
-          this.loading = false;
-          this._dialogRef.close(true);
+          // Use setTimeout to defer UI updates
+          setTimeout(() => {
+            this._snackBar.open('User created successfully', 'Close', { duration: 3000 });
+            this.loading = false;
+            this._dialogRef.close(true);
+          });
         },
         error: (error) => {
-          this._snackBar.open(`Failed to create user: ${error.message}`, 'Close', { duration: 3000 });
-          this.loading = false;
+          setTimeout(() => {
+            this._snackBar.open(`Failed to create user: ${error.message}`, 'Close', { duration: 3000 });
+            this.loading = false;
+          });
         }
       });
   }
@@ -169,7 +238,8 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
       prenom: formValue.prenom,
       email: formValue.email,
       username: formValue.username,
-      roles: formValue.roles,
+      roles: formValue.profileId ? formValue.profileId : [], // Use profileId for roles
+      serviceLine: formValue.serviceLineId,
       actif: formValue.actif,
       status: formValue.status,
       avatar: formValue.avatar
@@ -178,12 +248,6 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
     // Only include password if it was changed
     if (formValue.motDePasse) {
       updateData['motDePasse'] = formValue.motDePasse;
-    }
-
-    // Get service line name from ID
-    const serviceLine = this.serviceLines.find(sl => sl.id === formValue.serviceLineId);
-    if (serviceLine) {
-      updateData.serviceLine = serviceLine.name;
     }
 
     this._userService.updateUser(this.user.id, updateData)
@@ -229,6 +293,7 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
       case 'motDePasse': return 'Password';
       case 'roles': return 'Roles';
       case 'serviceLineId': return 'Service Line';
+      case 'profileId': return 'Profile';
       default: return fieldName;
     }
   }
@@ -250,5 +315,11 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
 
   cancel(): void {
     this._dialogRef.close(false);
+  }
+
+  // Add this method to your component class
+  getProfileNameById(profileId: number): string {
+    const profile = this.profiles.find(p => p.id === profileId);
+    return profile ? profile.nom : 'Unknown';
   }
 }

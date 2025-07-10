@@ -61,19 +61,6 @@
                         <mat-error *ngIf="serviceLineForm.controls['nom']?.invalid">Service line name is required</mat-error>
                         <mat-hint>A clear, descriptive name for this service line</mat-hint>
                     </mat-form-field>
-
-                    <!-- Description (uncomment if needed) -->
-                    <mat-form-field class="w-full">
-                        <mat-label>Description</mat-label>
-                        <textarea 
-                            matInput 
-                            [(ngModel)]="serviceLine.description" 
-                            name="description"
-                            rows="4"
-                            placeholder="Provide a detailed description of the service line">
-                        </textarea>
-                        <mat-hint>Optional detailed description of the service line's purpose</mat-hint>
-                    </mat-form-field>
                 </div>
             </div>
 

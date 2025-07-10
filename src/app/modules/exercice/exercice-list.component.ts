@@ -1,32 +1,19 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableDataSource } from '@angular/material/table';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Exercice, ExerciceService } from './exercice.service';
-import { Router, RouterModule } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog-component/confirm-dialog-component';
-import { MatFormFieldModule, MatLabel } from '@angular/material/form-field';
-import { MatOptionModule } from '@angular/material/core';
-import { CommonModule } from '@angular/common';
-import { MatInputModule } from '@angular/material/input';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatSelectModule } from '@angular/material/select';
+import { SharedModule } from '../shared/shared.module';
 
 @Component({
-  selector: 'app-exercice-list',
-    imports: [CommonModule, MatInputModule, MatButtonModule,
-        MatTableModule, MatPaginator, MatLabel,
-        MatSort, FormsModule, ReactiveFormsModule,
-        RouterModule, MatIconModule, MatOptionModule,
-        MatButtonModule, MatFormFieldModule, MatMenuModule,
-        MatIconModule, MatSelectModule,
-    ],
-  templateUrl: './exercice-list.component.html',
+  selector: 'app-exercice-list',    
+  imports: [SharedModule],
+  templateUrl: './exercice-list.component.html'
 })
 export class ExerciceListComponent implements OnInit {
   displayedColumns: string[] = ['select', 'annee', 'verrouille', 'actions'];
@@ -42,7 +29,7 @@ export class ExerciceListComponent implements OnInit {
   constructor(
     private exerciceService: ExerciceService,
     private dialog: MatDialog,
-    private _router: Router
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -100,11 +87,11 @@ export class ExerciceListComponent implements OnInit {
   }
 
   createExercise(): void {
-    this._router.navigate(['/exercices/create']);
+    this.router.navigate(['/exercises/create']);
   }
 
   editExercise(exercise: Exercice): void {
-    this._router.navigate(['/exercices/edit', exercise.id]);
+    this.router.navigate(['/exercises/edit', exercise.id]);
   }
 
   toggleLock(exercise: Exercice): void {

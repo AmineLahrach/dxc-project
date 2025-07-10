@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 export interface Exercice {
   id: number;

@@ -245,19 +245,21 @@ export class PlanListComponent implements OnInit, OnDestroy {
 
   canEdit(plan: PlanAction): boolean {
     return true;
-    return this._authService.isAdmin() || 
-           this._authService.isCollaborator() && 
-           plan.statut !== ActionPlanStatus.LOCKED;
+    // return this._authService.isAdmin() || 
+    //        this._authService.isCollaborator() && 
+    //        plan.statut !== ActionPlanStatus.LOCKED;
   }
 
   canDelete(plan: PlanAction): boolean {
-    return this._authService.isAdmin() || 
-           (this._authService.isCollaborator() && plan.statut === ActionPlanStatus.PLANNING);
+    return true
+    // return this._authService.isAdmin() || 
+    //        (this._authService.isCollaborator() && plan.statut === ActionPlanStatus.PLANNING);
   }
 
   canApprove(plan: PlanAction): boolean {
-    return (this._authService.isAdmin() || this._authService.isDirector()) &&
-           plan.statut === ActionPlanStatus.PLANNING;
+    return true
+    // return (this._authService.isAdmin() || this._authService.isDirector()) &&
+    //        plan.statut === ActionPlanStatus.PLANNING;
   }
 
   approvePlan(plan: PlanAction): void {

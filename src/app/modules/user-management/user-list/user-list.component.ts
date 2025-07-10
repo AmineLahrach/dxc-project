@@ -6,45 +6,22 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 
-// Angular Material Imports
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-// User Service and Models
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/models/auth.models';
 import { UserUpsertDialogComponent } from '../user-upsert/user-upsert-dialog.component';
-// import { UserUpsertDialogComponent } from '../user-upsert/user-upsert-dialog.component';
+import { SharedModule } from 'app/modules/shared/shared.module';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatMenuModule,
+  imports: [SharedModule,
     MatChipsModule,
     MatSnackBarModule,
     MatTooltipModule,
@@ -191,6 +168,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   createUser(): void {
     const dialogRef = this._dialog.open(UserUpsertDialogComponent, {
       width: '600px',
+      maxHeight: '90vh', // Add this line to limit height
       data: { isEdit: false }
     });
 
@@ -204,6 +182,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   editUser(user: User): void {
     const dialogRef = this._dialog.open(UserUpsertDialogComponent, {
       width: '600px',
+      maxHeight: '90vh', // Add this line to limit height
       data: { isEdit: true, user: user }
     });
 
