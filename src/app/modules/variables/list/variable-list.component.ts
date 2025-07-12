@@ -7,24 +7,16 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { VariableService, VariableFilter } from './variable-service';
 import { PlanService } from 'app/modules/plan-management/plan-service';
 import { AuthService } from 'app/core/auth/auth.service';
-import { VariableAction, PlanAction } from 'app/models/plan.models';
+import { VariableAction } from 'app/models/business.models';
+import { PlanAction } from 'app/models/plan.models';
 import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { User } from 'app/models/auth.models'; // Make sure this import exists
-import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatOptionModule } from '@angular/material/core';
+import { User } from 'app/models/auth.models';
+import { SharedModule } from 'app/modules/shared/shared.module';
 
 @Component({
   selector: 'app-variable-list',
-    imports: [
-        MatPaginator, MatOptionModule, MatLabel,
-        MatFormField, RouterModule,
-        MatIcon,
-        MatTableModule,
-        ReactiveFormsModule,
-        // Add other necessary imports like MatIcon, MatFormField, etc.
-    ],
+    imports: [SharedModule, MatTableModule],
   templateUrl: './variable-list.component.html'
 })
 export class VariableListComponent implements OnInit, OnDestroy {

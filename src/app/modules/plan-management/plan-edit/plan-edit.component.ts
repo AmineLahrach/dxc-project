@@ -124,23 +124,14 @@ export class PlanEditComponent implements OnInit, OnDestroy {
       });
   }
 
-  private populateForm(plan: PlanAction): void {
+  private populateForm(plan: any): void {
     this.planForm.patchValue({
       titre: plan.titre,
+      exerciceId: plan.exercice && plan.exercice.id ? plan.exercice.id : null,
+      dueDate: plan.dueDate,
       description: plan.description,
-      exerciceId: plan.exercice.id,
-      dueDate: plan.dueDate
+      // ...other fields
     });
-
-    // Populate variable actions
-    const variableActionsArray = this.planForm.get('variableActions') as FormArray;
-    variableActionsArray.clear();
-    
-    if (plan.variableActions) {
-      plan.variableActions.forEach(variable => {
-        variableActionsArray.push(this.createVariableFormGroup(variable));
-      });
-    }
   }
 
   // Variable Actions Management
@@ -189,14 +180,14 @@ export class PlanEditComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exerciceId: formValue.exerciceId,
-      dueDate: formValue.dueDate,
+      exerciceId: Number(formValue.exerciceId), // Ensure it's a number
+      dueDate: formValue.dueDate ? new Date(formValue.dueDate).toISOString() : null,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,
-        poids: va.poids,
-        niveau: va.niveau,
-        responsableId: va.responsableId,
-        vaMereId: va.vaMereId
+        poids: Number(va.poids),
+        niveau: Number(va.niveau),
+        responsableId: va.responsableId ? Number(va.responsableId) : null,
+        vaMereId: va.vaMereId ? Number(va.vaMereId) : null
       }))
     };
 

@@ -80,7 +80,7 @@
                     <mat-form-field>
                         <mat-label>Exercise</mat-label>
                         <mat-select formControlName="exerciceId">
-                            <mat-option *ngFor="let exercise of exercises" [value]="exercise.id">
+                            <mat-option *ngFor="let exercise of exercises" [value]="exercise?.id">
                                 {{exercise.annee}} - {{exercise.description}}
                             </mat-option>
                         </mat-select>

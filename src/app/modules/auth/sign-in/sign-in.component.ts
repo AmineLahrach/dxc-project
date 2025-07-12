@@ -97,17 +97,25 @@ export class AuthSignInComponent implements OnInit {
 
         this._authService.signIn(payload).subscribe(
             () => {
-                // Set the redirect url.
-                // The '/signed-in-redirect' is a dummy url to catch the request and redirect the user
-                // to the correct page after a successful sign in. This way, that url can be set via
-                // routing file and we don't have to touch here.
-                const redirectURL =
-                    this._activatedRoute.snapshot.queryParamMap.get(
-                        'redirectURL'
-                    ) || '/signed-in-redirect';
-
-                // Navigate to the redirect url
-                this._router.navigateByUrl(redirectURL);
+                // Get redirect URL from query params or route to the appropriate dashboard based on user role
+                const redirectURL = this._activatedRoute.snapshot.queryParamMap.get('redirectURL');
+                
+                if (redirectURL) {
+                    // If redirectURL is provided, navigate to it
+                    this._router.navigateByUrl(redirectURL);
+                } else {
+                    // Determine which dashboard to navigate to based on user role
+                    if (this._authService.isAdmin()) {
+                        this._router.navigate(['/dashboard/admin-dashboard']);
+                    } else if (this._authService.isDirector()) {
+                        this._router.navigate(['/dashboard/director-dashboard']);
+                    } else if (this._authService.isCollaborator()) {
+                        this._router.navigate(['/dashboard/collaborator-dashboard']);
+                    } else {
+                        // Default dashboard
+                        this._router.navigate(['/dashboard']);
+                    }
+                }
             },
             (response) => {
                 // Re-enable the form

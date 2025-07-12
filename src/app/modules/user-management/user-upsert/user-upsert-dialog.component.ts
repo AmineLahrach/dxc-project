@@ -99,13 +99,6 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchDropdownData();
-    // if (this.user) {
-    // this.userForm.patchValue({
-    //   serviceLineId: this.user.serviceLineId ?? null,
-    //   profileId: this.user.profils ? this.user.profils.map(p => p.id) : []
-    // });
-    console.log('User: ' + JSON.stringify(this.user));
-    console.log('Form Value: ' + JSON.stringify(this.userForm.value));
   }
 
   ngOnDestroy(): void {

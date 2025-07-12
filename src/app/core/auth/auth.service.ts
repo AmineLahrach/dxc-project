@@ -171,17 +171,12 @@ export class AuthService {
      * Sign out
      */
     signOut(): Observable<any> {
-        // Remove the access token from the local storage
+        
         localStorage.removeItem('accessToken');
         
-        // Remove stored user
         localStorage.removeItem('currentUser');
-
-        // Set the authenticated flag to false
         this._authenticated = false;
         this._currentUser.next(null);
-
-        // Return the observable
         return of(true);
     }
 
@@ -196,12 +191,7 @@ export class AuthService {
         password: string;
         company: string;
     }): Observable<any> {
-        // MOCK IMPLEMENTATION
-        console.log('Mock sign up with user:', user);
-        return of({ success: true, message: 'User registered successfully.' });
-        
-        // ORIGINAL IMPLEMENTATION - uncomment for production
-        // return this._httpClient.post('api/auth/sign-up', user);
+        return this._httpClient.post('api/auth/sign-up', user);
     }
 
     /**
@@ -213,12 +203,7 @@ export class AuthService {
         email: string;
         password: string;
     }): Observable<any> {
-        // MOCK IMPLEMENTATION
-        console.log('Mock unlock session with credentials:', credentials);
-        return of({ success: true });
-        
-        // ORIGINAL IMPLEMENTATION - uncomment for production
-        // return this._httpClient.post('api/auth/unlock-session', credentials);
+        return this._httpClient.post('api/auth/unlock-session', credentials);
     }
 
     public getCurrentUserFromStorage(): User | null {
@@ -230,27 +215,33 @@ export class AuthService {
      * Check the authentication status
      */
     check(): Observable<boolean> {
-        // Check if the user is logged in
-        if (this._authenticated) {
-            return of(true);
-        }
-
-        // Check the access token availability
+        // First verify we have the necessary credentials
         if (!this.accessToken) {
+            console.log('No access token found');
+            this._authenticated = false;
             return of(false);
         }
 
-        // MOCK IMPLEMENTATION - Skip token expiration check for development
-        // return of(true);
-        
-        // For better simulation, we'll still use the token expiration check
-        // Check the access token expire date
+        // Then check if the token is expired
         if (AuthUtils.isTokenExpired(this.accessToken)) {
+            console.log('Token is expired');
+            this._authenticated = false;
             return of(false);
         }
-
-        // If the access token exists, and it didn't expire, sign in using it
-        return this.signInUsingToken();
+        
+        // If we have a valid token but _authenticated flag is false,
+        // we need to sign in using the token
+        if (!this._authenticated) {
+            return this.signInUsingToken().pipe(
+                catchError(error => {
+                    console.error('Error during token authentication:', error);
+                    return of(false);
+                })
+            );
+        }
+        
+        // If we're already authenticated and have a valid token
+        return of(true);
     }
 
     /**
@@ -272,7 +263,7 @@ export class AuthService {
      */
     isAdmin(): boolean {
         const user = this.getCurrentUserFromStorage() || this._currentUser.value;
-        return !!user && Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
+        return !!user && Array.isArray(user.roles) && user.roles.includes('ADMINISTRATEUR');
     }
 
     /**

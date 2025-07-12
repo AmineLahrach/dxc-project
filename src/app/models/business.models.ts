@@ -1,6 +1,5 @@
 import { User } from "./auth.models";
 
-// src/app/core/models/business.models.ts
 export interface PlanAction {
   id?: number;
   titre: string;
@@ -42,7 +41,7 @@ export interface Profile {
 }
 
 export enum ActionPlanStatus {
-  IN_PROGRESS = 'EN_COURS',
+  IN_PROGRESS = 'EN_COURS_PLANIFICATION',
   PLANNING = 'PLANIFICATION',
   TRACKING = 'SUIVI_REALISATION',
   LOCKED = 'VERROUILLE'

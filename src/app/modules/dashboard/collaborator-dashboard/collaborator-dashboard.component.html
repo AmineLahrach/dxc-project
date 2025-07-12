@@ -1,1 +1,279 @@
-<p>overview works!</p>
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Dashboard</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Welcome back, {{currentUser}}!
+                </h2>
+                <p class="text-secondary">Here's what's happening with your strategic plans today.</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+            <button
+                mat-flat-button
+                color="primary"
+                [routerLink]="['/plans/create']">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create Plan</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Loading state -->
+        <div *ngIf="loading" class="flex justify-center items-center h-64">
+            <mat-spinner diameter="48"></mat-spinner>
+        </div>
+
+        <!-- Dashboard content -->
+        <div *ngIf="!loading && stats" class="space-y-8">
+
+            <!-- Stats cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Total Plans -->
+                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div class="text-lg font-medium tracking-tight leading-6 truncate">
+                            Total Plans
+                        </div>
+                        <div class="ml-2">
+                            <mat-icon class="text-hint" svgIcon="heroicons_outline:document-text"></mat-icon>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-3xl sm:text-5xl font-bold tracking-tight leading-none text-blue-500">
+                        {{stats.totalPlans}}
+                    </div>
+                    <div class="mt-2 text-sm text-secondary">
+                        <span class="text-green-600">+12%</span> from last month
+                    </div>
+                </div>
+
+                <!-- Active Plans -->
+                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div class="text-lg font-medium tracking-tight leading-6 truncate">
+                            Active Plans
+                        </div>
+                        <div class="ml-2">
+                            <mat-icon class="text-hint" svgIcon="heroicons_outline:play"></mat-icon>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-3xl sm:text-5xl font-bold tracking-tight leading-none text-green-500">
+                        {{stats.activePlans}}
+                    </div>
+                    <div class="mt-2 text-sm text-secondary">
+                        <span class="text-green-600">+8%</span> from last month
+                    </div>
+                </div>
+
+                <!-- Completed Plans -->
+                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                    <div class="flex items-start justify-between">
+                        <div class="text-lg font-medium tracking-tight leading-6 truncate">
+                            Completed
+                        </div>
+                        <div class="ml-2">
+                            <mat-icon class="text-hint" svgIcon="heroicons_outline:check-circle"></mat-icon>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-3xl sm:text-5xl font-bold tracking-tight leading-none text-purple-500">
+                        {{stats.completedPlans}}
+                    </div>
+                    <div class="mt-2 text-sm text-secondary">
+                        <span class="text-green-600">+15%</span> from last month
+                    </div>
+                </div>
+
+                <!-- Pending Approvals -->
+                <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden" *ngIf="isDirector || isAdmin">
+                    <div class="flex items-start justify-between">
+                        <div class="text-lg font-medium tracking-tight leading-6 truncate">
+                            Pending Approvals
+                        </div>
+                        <div class="ml-2">
+                            <mat-icon class="text-hint" svgIcon="heroicons_outline:clock"></mat-icon>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-3xl sm:text-5xl font-bold tracking-tight leading-none text-orange-500">
+                        {{stats.pendingApprovals}}
+                    </div>
+                    <div class="mt-2 text-sm text-secondary">
+                        Requires your attention
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts section -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+                <!-- Left column - Charts -->
+                <div class="xl:col-span-2 space-y-8">
+                    
+                    <!-- Monthly Progress Chart -->
+                    <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-medium">Monthly Progress</div>
+                            <button mat-icon-button [matMenuTriggerFor]="monthlyProgressMenu">
+                                <mat-icon [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                            </button>
+                            <mat-menu #monthlyProgressMenu>
+                                <button mat-menu-item>Export</button>
+                                <button mat-menu-item>View Details</button>
+                            </mat-menu>
+                        </div>
+                        <div class="mt-4">
+                            <apx-chart
+                                [series]="chartMonthlyProgress.series"
+                                [chart]="chartMonthlyProgress.chart"
+                                [xaxis]="chartMonthlyProgress.xaxis"
+                                [colors]="chartMonthlyProgress.colors"
+                                [stroke]="chartMonthlyProgress.stroke"
+                                [markers]="chartMonthlyProgress.markers">
+                            </apx-chart>
+                        </div>
+                    </div>
+
+                    <!-- Plans by Service Line Chart -->
+                    <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-medium">Plans by Service Line</div>
+                            <button mat-icon-button [matMenuTriggerFor]="serviceLineMenu">
+                                <mat-icon [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                            </button>
+                            <mat-menu #serviceLineMenu>
+                                <button mat-menu-item>Export</button>
+                                <button mat-menu-item>View Details</button>
+                            </mat-menu>
+                        </div>
+                        <div class="mt-4">
+                            <apx-chart
+                                [series]="chartPlansByServiceLine.series"
+                                [chart]="chartPlansByServiceLine.chart"
+                                [xaxis]="chartPlansByServiceLine.xaxis"
+                                [colors]="chartPlansByServiceLine.colors"
+                                [plotOptions]="chartPlansByServiceLine.plotOptions"
+                                [dataLabels]="chartPlansByServiceLine.dataLabels">
+                            </apx-chart>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column -->
+                <div class="space-y-8">
+                    
+                    <!-- Plans by Status -->
+                    <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-medium">Plans by Status</div>
+                        </div>
+                        <div class="mt-4">
+                            <apx-chart
+                                [series]="chartPlansByStatus.series"
+                                [chart]="chartPlansByStatus.chart"
+                                [labels]="chartPlansByStatus.labels"
+                                [colors]="chartPlansByStatus.colors"
+                                [legend]="chartPlansByStatus.legend"
+                                [responsive]="chartPlansByStatus.responsive">
+                            </apx-chart>
+                        </div>
+                    </div>
+
+                    <!-- Recent Plans -->
+                    <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-medium">Recent Plans</div>
+                            <a
+                                class="text-primary-500 text-sm font-medium"
+                                [routerLink]="['/plans']">
+                                View All
+                            </a>
+                        </div>
+                        <div class="mt-6 space-y-4">
+                            <div
+                                class="flex items-center space-x-4"
+                                *ngFor="let plan of stats.recentPlans">
+                                
+                                <div class="flex-shrink-0">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                </div>
+                                
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">
+                                        {{plan.title}}
+                                    </p>
+                                    <p class="text-xs text-secondary">
+                                        {{plan.responsible}}
+                                    </p>
+                                </div>
+                                
+                                <div class="flex-shrink-0">
+                                    <span
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                        [class]="getStatusColor(plan.status)">
+                                        {{plan.status | titlecase}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-lg font-medium">Recent Activity</div>
+                            <a
+                                class="text-primary-500 text-sm font-medium"
+                                [routerLink]="['/activity']">
+                                View All
+                            </a>
+                        </div>
+                        <div class="mt-6 space-y-4">
+                            <div
+                                class="flex items-start space-x-3"
+                                *ngFor="let activity of stats.userActivity">
+                                
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span class="text-xs font-medium text-blue-600">
+                                            <!-- {{activity.user.split(' ').map(n => n[0]).join('')}} -->
+                                             fsdf dsf
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm">
+                                        <span class="font-medium">{{activity.user}}</span>
+                                        {{activity.action.toLowerCase()}}
+                                        <span class="font-medium">{{activity.target}}</span>
+                                    </p>
+                                    <p class="text-xs text-secondary">
+                                        {{getTimeAgo(activity.timestamp)}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

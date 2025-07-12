@@ -1,100 +1,175 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
+import { DashboardService, DashboardStats } from '../dashboard-service';
+import { AuthService } from 'app/core/auth/auth.service';
+import { ApexOptions } from 'ng-apexcharts';
 import { SharedModule } from 'app/modules/shared/shared.module';
-import { MatIcon } from "@angular/material/icon";
-import { FuseCardComponent } from "@fuse/components/card";
-import { MatTable } from "@angular/material/table";
+import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-collaborator-dashboard',
-    template: `
-        <div class="flex flex-col w-full">
-            <!-- Header -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
-                <div class="text-4xl font-extrabold tracking-tight leading-none">Mes Plans d'Action</div>
-                <button mat-raised-button color="primary" (click)="createPlan()">
-                    <mat-icon>add</mat-icon>
-                    Nouveau Plan
-                </button>
-            </div>
-            
-            <!-- Progress Overview -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
-                <fuse-card class="flex flex-col p-6">
-                    <div class="text-lg font-medium text-secondary">Plans En Cours</div>
-                    <div class="text-3xl font-bold mt-2 text-blue-600">{{myStats.inProgress}}</div>
-                </fuse-card>
-                
-                <fuse-card class="flex flex-col p-6">
-                    <div class="text-lg font-medium text-secondary">Plans Terminés</div>
-                    <div class="text-3xl font-bold mt-2 text-green-600">{{myStats.completed}}</div>
-                </fuse-card>
-                
-                <fuse-card class="flex flex-col p-6">
-                    <div class="text-lg font-medium text-secondary">En Attente</div>
-                    <div class="text-3xl font-bold mt-2 text-orange-600">{{myStats.pending}}</div>
-                </fuse-card>
-            </div>
-            
-            <!-- My Action Plans -->
-            <fuse-card class="mt-8 p-6">
-                <div class="text-lg font-semibold mb-4">Mes Plans d'Action</div>
-                <mat-table [dataSource]="myPlans" class="mat-elevation-z0">
-                    <ng-container matColumnDef="title">
-                        <mat-header-cell *matHeaderCellDef>Titre</mat-header-cell>
-                        <mat-cell *matCellDef="let plan">{{plan.titre}}</mat-cell>
-                    </ng-container>
-                    
-                    <ng-container matColumnDef="status">
-                        <mat-header-cell *matHeaderCellDef>Statut</mat-header-cell>
-                        <mat-cell *matCellDef="let plan">
-                            <mat-chip [color]="getStatusColor(plan.statut)">{{plan.statut}}</mat-chip>
-                        </mat-cell>
-                    </ng-container>
-                    
-                    <ng-container matColumnDef="progress">
-                        <mat-header-cell *matHeaderCellDef>Progression</mat-header-cell>
-                        <mat-cell *matCellDef="let plan">
-                            <mat-progress-bar [value]="plan.progress" mode="determinate"></mat-progress-bar>
-                            <span class="ml-2">{{plan.progress}}%</span>
-                        </mat-cell>
-                    </ng-container>
-                    
-                    <ng-container matColumnDef="actions">
-                        <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
-                        <mat-cell *matCellDef="let plan">
-                            <button mat-icon-button (click)="editPlan(plan)">
-                                <mat-icon>edit</mat-icon>
-                            </button>
-                            <button mat-icon-button (click)="viewDetails(plan)">
-                                <mat-icon>visibility</mat-icon>
-                            </button>
-                        </mat-cell>
-                    </ng-container>
-                    
-                    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-                </mat-table>
-            </fuse-card>
-        </div>
-    `,
-    imports: [SharedModule, FuseCardComponent]
+  selector: 'app-collaborator-dashboard',
+  imports: [CommonModule, SharedModule],
+  templateUrl: './collaborator-dashboard.component.html'
 })
-export class CollaboratorDashboardComponent implements OnInit {
-createPlan() {
-throw new Error('Method not implemented.');
-}
-    myStats = {
-        inProgress: 0,
-        completed: 0,
-        pending: 0
-    };
-    myPlans: any[] = [];
-    displayedColumns = ['title', 'status', 'progress', 'actions'];
+export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
+  stats: DashboardStats;
+  loading = true;
+  
+  // Chart configurations
+  chartPlansByStatus: ApexOptions;
+  chartPlansByServiceLine: ApexOptions;
+  chartMonthlyProgress: ApexOptions;
 
-    ngOnInit() {
-        this.loadMyPlans();
+  private _unsubscribeAll: Subject<any> = new Subject<any>();
+
+  constructor(
+    private _dashboardService: DashboardService,
+    private _authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    this._unsubscribeAll.next(null);
+    this._unsubscribeAll.complete();
+  }
+
+  loadDashboardData(): void {
+    this._dashboardService.getDashboardStats()
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe({
+        next: (stats) => {
+          this.stats = stats;
+          this.prepareCharts();
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+  }
+
+  private prepareCharts(): void {
+    // Plans by Status Pie Chart
+    this.chartPlansByStatus = {
+      chart: {
+        type: 'pie',
+        height: 300
+      },
+      series: Object.values(this.stats.plansByStatus),
+      labels: Object.keys(this.stats.plansByStatus),
+      colors: ['#2563eb', '#059669', '#dc2626', '#d97706'],
+      legend: {
+        position: 'bottom'
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 250
+          },
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }]
+    };
+
+    // Plans by Service Line Bar Chart
+    this.chartPlansByServiceLine = {
+      chart: {
+        type: 'bar',
+        height: 300,
+        toolbar: { show: false }
+      },
+      series: [{
+        name: 'Plans',
+        data: Object.values(this.stats.plansByServiceLine)
+      }],
+      xaxis: {
+        categories: Object.keys(this.stats.plansByServiceLine)
+      },
+      colors: ['#3b82f6'],
+      plotOptions: {
+        bar: {
+          borderRadius: 4,
+          horizontal: false
+        }
+      },
+      dataLabels: {
+        enabled: false
+      }
+    };
+
+    // Monthly Progress Line Chart
+    this.chartMonthlyProgress = {
+      chart: {
+        type: 'line',
+        height: 300,
+        toolbar: { show: false }
+      },
+      series: [
+        {
+          name: 'Completed',
+          data: this.stats.monthlyProgress.map(item => item.completed)
+        },
+        {
+          name: 'Created',
+          data: this.stats.monthlyProgress.map(item => item.created)
+        }
+      ],
+      xaxis: {
+        categories: this.stats.monthlyProgress.map(item => item.month)
+      },
+      colors: ['#059669', '#3b82f6'],
+      stroke: {
+        curve: 'smooth',
+        width: 3
+      },
+      markers: {
+        size: 6
+      }
+    };
+  }
+
+  get currentUser() {
+    return this._authService.currentUser$;
+  }
+
+  get isAdmin() {
+    return this._authService.isAdmin();
+  }
+
+  get isDirector() {
+    return this._authService.isDirector();
+  }
+
+  getStatusColor(status: string): string {
+    switch (status.toUpperCase()) {
+      case 'PLANNING':
+        return 'text-blue-600 bg-blue-100';
+      case 'IN_PROGRESS':
+        return 'text-green-600 bg-green-100';
+      case 'TRACKING':
+        return 'text-orange-600 bg-orange-100';
+      case 'COMPLETED':
+        return 'text-purple-600 bg-purple-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
-  loadMyPlans() {
-    throw new Error('Method not implemented.');
+  }
+
+  getTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
   }
 }
