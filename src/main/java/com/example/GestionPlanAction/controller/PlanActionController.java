@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.PlanStatusUpdateRequest;
 import com.example.GestionPlanAction.model.PlanAction;
 import com.example.GestionPlanAction.service.PlanActionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,5 +38,10 @@ public class PlanActionController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         planActionService.delete(id);
+    }
+
+    @PatchMapping("/{id}/status")
+    public PlanAction updateStatus(@PathVariable Long id, @RequestBody PlanStatusUpdateRequest request) {
+        return planActionService.updateStatus(id, request.getStatus());
     }
 }

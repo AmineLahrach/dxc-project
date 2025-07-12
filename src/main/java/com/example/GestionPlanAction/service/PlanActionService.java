@@ -9,5 +9,6 @@ public interface PlanActionService {
     PlanAction getById(Long id);
     PlanAction create(PlanAction planAction);
     PlanAction update(Long id, PlanAction updated);
+    PlanAction updateStatus(Long id, String status);
     void delete(Long id);
 }

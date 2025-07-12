@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.service;
 
+import com.example.GestionPlanAction.enums.StatutPlanAction;
 import com.example.GestionPlanAction.model.PlanAction;
 import com.example.GestionPlanAction.repository.PlanActionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class PlanActionServiceImpl implements PlanActionService {
 
     @Override
     public PlanAction create(PlanAction planAction) {
+        if (planAction.getStatut() == null) {
+            planAction.setStatut(StatutPlanAction.EN_COURS_PLANIFICATION);
+        }
         return repository.save(planAction);
     }
 
@@ -37,6 +41,12 @@ public class PlanActionServiceImpl implements PlanActionService {
         existing.setStatut(updated.getStatut());
         existing.setExercice(updated.getExercice());
         return repository.save(existing);
+    }
+
+    public PlanAction updateStatus(Long id, String status) {
+        PlanAction plan = getById(id);
+        plan.setStatut(StatutPlanAction.valueOf(status));
+        return repository.save(plan);
     }
 
     @Override
