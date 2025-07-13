@@ -52,6 +52,8 @@ import { MatChipsModule } from '@angular/material/chips';
   standalone: true
 })
 export class PlanDetailComponent implements OnInit, OnDestroy {
+  ActionPlanStatus = ActionPlanStatus;
+
   // View mode properties
   plan: PlanAction | null = null;
   loading = false;
@@ -155,7 +157,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     this.planForm.patchValue({
       titre: plan.titre,
       description: plan.description,
-      exerciceId: plan.exercice.id,
+      exerciceId: plan.exercice && plan.exercice.id ? plan.exercice.id : null, // Safe check
       dueDate: plan.dueDate
     });
 
@@ -213,10 +215,18 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
   }
 
   private updatePlan(formValue: any): void {
-    const updateData: Partial<PlanAction> = {
+   const updateData: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      dueDate: formValue.dueDate
+      statut: this.plan?.statut || ActionPlanStatus.PLANNING,
+      exercice: { id: Number(formValue.exerciceId) }, // Send as object
+      variableActions: formValue.variableActions?.map((va: any) => ({
+        description: va.description,
+        poids: Number(va.poids),
+        niveau: Number(va.niveau),
+        responsable: { id: va.responsableId ? Number(va.responsableId) : 0 },
+        vaMereId: va.vaMereId ? Number(va.vaMereId) : null
+      }))
     };
 
     this._planService.updatePlan(this.plan!.id!, updateData)
@@ -239,8 +249,8 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exercice: { id: Number(formValue.exerciceId) }, // Send as object
-      dueDate: formValue.dueDate,
+      exercice: { id: Number(formValue.exerciceId) },
+      statut: ActionPlanStatus.PLANNING,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,
         poids: va.poids,

@@ -59,7 +59,7 @@ export interface PlanActionCreateRequest {
   titre: string;
   description: string;
   exercice: { id: number };
-  dueDate?: string;
+  statut?: ActionPlanStatus;
   variableActions?: VariableActionCreateRequest[];
 }
 
@@ -67,6 +67,6 @@ export interface VariableActionCreateRequest {
   description: string;
   poids: number;
   niveau: number;
-  responsableId: number;
+  responsable: {id : number};
   vaMereId?: number;
 }

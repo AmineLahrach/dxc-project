@@ -180,13 +180,13 @@ export class PlanEditComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exercice: { id: Number(formValue.exerciceId) }, // Send as object
-      dueDate: formValue.dueDate ? new Date(formValue.dueDate).toISOString() : null,
+      exercice: { id: Number(formValue.exerciceId) },
+      statut: ActionPlanStatus.PLANNING,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,
         poids: Number(va.poids),
         niveau: Number(va.niveau),
-        responsableId: va.responsableId ? Number(va.responsableId) : null,
+        responsable: { id: va.responsableId ? Number(va.responsableId) : 0 },
         vaMereId: va.vaMereId ? Number(va.vaMereId) : null
       }))
     };
@@ -207,10 +207,18 @@ export class PlanEditComponent implements OnInit, OnDestroy {
   }
 
   private updatePlan(formValue: any): void {
-    const updateData: Partial<PlanAction> = {
+    const updateData: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      dueDate: formValue.dueDate
+      statut: this.currentPlan?.statut || ActionPlanStatus.PLANNING,
+      exercice: { id: Number(formValue.exerciceId) }, // Send as object
+      variableActions: formValue.variableActions?.map((va: any) => ({
+        description: va.description,
+        poids: Number(va.poids),
+        niveau: Number(va.niveau),
+        responsable: { id: va.responsableId ? Number(va.responsableId) : 0 },
+        vaMereId: va.vaMereId ? Number(va.vaMereId) : null
+      }))
     };
 
     this._planService.updatePlan(this.planId!, updateData)
@@ -287,9 +295,9 @@ export class PlanEditComponent implements OnInit, OnDestroy {
   }
 
   // Navigation
-  cancel(): void {
+  cancel() {
     if (this.isEditMode && this.planId) {
-      this._router.navigate(['/plans', this.planId]);
+      this._router.navigate(['/plans']);
     } else {
       this._router.navigate(['/plans']);
     }

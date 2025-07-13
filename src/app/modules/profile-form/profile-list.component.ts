@@ -9,6 +9,7 @@ import { SharedModule } from '../shared/shared.module';
 import { ProfileFormComponent } from './profile-form-component';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog-component/confirm-dialog-component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-profile-list',
@@ -28,7 +29,8 @@ export class ProfileListComponent implements OnInit, AfterViewInit {
   constructor(
     private profileService: ProfileService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private _snackBar: MatSnackBar
   ) {
     this.profiles = new MatTableDataSource<Profile>([]);
   }
@@ -104,10 +106,11 @@ export class ProfileListComponent implements OnInit, AfterViewInit {
       if (result) {
         this.profileService.deleteProfile(profile.id).subscribe({
           next: () => {
+            this._snackBar.open('Profile deleted successfully', 'Close', { duration: 3000 });
             this.loadProfiles();
           },
           error: (error) => {
-            console.error('Error deleting profile:', error);
+            this._snackBar.open('Failed to delete profile', 'Close', { duration: 3000 });
           }
         });
       }

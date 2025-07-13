@@ -18,6 +18,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatOptionModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialogComponent } from 'app/modules/shared/confirm-dialog-component/confirm-dialog-component';
 
 @Component({
   selector: 'app-plan-list',
@@ -36,7 +38,7 @@ export class PlanListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
 
   dataSource: MatTableDataSource<PlanAction> = new MatTableDataSource();
-  displayedColumns: string[] = ['select', 'titre', 'statut', 'progress', 'dueDate', 'createdBy', 'actions'];
+  displayedColumns: string[] = ['select', 'titre', 'description', 'statut', 'createdBy', 'actions'];
   
   // Filter controls
   searchControl = new FormControl('');
@@ -59,7 +61,8 @@ export class PlanListComponent implements OnInit, OnDestroy {
     private _planService: PlanService,
     private _authService: AuthService,
     private _router: Router,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private _snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -172,11 +175,29 @@ export class PlanListComponent implements OnInit, OnDestroy {
   }
 
   deletePlan(plan: PlanAction): void {
-    if (confirm(`Are you sure you want to delete "${plan.titre}"?`)) {
-      this._planService.deletePlan(plan.id!).subscribe(() => {
-        this.loadPlans();
-      });
-    }
+    const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Plan',
+        message: `Are you sure you want to delete "${plan.titre}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this._planService.deletePlan(plan.id!).subscribe({
+          next: () => {
+            this._snackBar.open('Plan deleted successfully', 'Close', { duration: 3000 });
+            this.loadPlans();
+          },
+          error: () => {
+            this._snackBar.open('Failed to delete plan', 'Close', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
   duplicatePlan(plan: PlanAction): void {

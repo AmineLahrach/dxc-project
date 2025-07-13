@@ -17,6 +17,7 @@ import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/models/auth.models';
 import { UserUpsertDialogComponent } from '../user-upsert/user-upsert-dialog.component';
 import { SharedModule } from 'app/modules/shared/shared.module';
+import { ConfirmDialogComponent } from 'app/modules/shared/confirm-dialog-component/confirm-dialog-component';
 
 @Component({
   selector: 'app-user-list',
@@ -213,19 +214,31 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Are you sure you want to delete user "${user.prenom} ${user.nom}"? This action cannot be undone.`)) {
-      this._userService.deleteUser(user.id)
-        .pipe(takeUntil(this._unsubscribeAll))
-        .subscribe({
-          next: () => {
-            this._snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
-            this.loadUsers();
-          },
-          error: () => {
-            this._snackBar.open('Failed to delete user', 'Close', { duration: 3000 });
-          }
-        });
-    }
+    const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete User',
+        message: `Are you sure you want to delete user "${user.prenom} ${user.nom}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this._userService.deleteUser(user.id)
+          .pipe(takeUntil(this._unsubscribeAll))
+          .subscribe({
+            next: () => {
+              this._snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
+              this.loadUsers();
+            },
+            error: () => {
+              this._snackBar.open('Failed to delete user', 'Close', { duration: 3000 });
+            }
+          });
+      }
+    });
   }
 
   // Bulk actions

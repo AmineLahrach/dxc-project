@@ -4,13 +4,13 @@ import { DirectorDashboardComponent } from './director-dashboard/director-dashbo
 import { CollaboratorDashboardComponent } from './collaborator-dashboard/collaborator-dashboard.component';
 import { AuthGuard } from 'app/core/auth/guards/auth.guard';
 import { RoleGuard } from 'app/core/auth/guards/role.guard';
+import { RedirectToDashboardComponent } from './redirect-to-dashboard/redirect-to-dashboard';
 
 export default [
-  // {
-  //   path: '',
-  //   redirectTo: 'collaborator-dashboard',
-  //   pathMatch: 'full'
-  // },
+  {
+    path: 'redirect-to-dashboard',
+    component: RedirectToDashboardComponent,  
+  },
   {
     path: 'admin-dashboard',
     component: AdminDashboardComponent,

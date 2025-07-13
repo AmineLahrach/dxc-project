@@ -8,6 +8,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { ServiceLineFormComponent } from './service-line-form.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog-component/confirm-dialog-component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-service-line-list',
@@ -24,7 +25,11 @@ export class ServiceLineListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  constructor(private serviceLineService: ServiceLineService, private dialog: MatDialog) {
+  constructor(
+    private serviceLineService: ServiceLineService,
+    private dialog: MatDialog,
+    private _snackBar: MatSnackBar // <-- Add this
+  ) {
     this.serviceLines = new MatTableDataSource<ServiceLine>([]);
   }
 
@@ -100,10 +105,11 @@ export class ServiceLineListComponent implements OnInit, AfterViewInit {
       if (result) {
         this.serviceLineService.deleteServiceLine(serviceLine.id).subscribe({
           next: () => {
+            this._snackBar.open('Service line deleted successfully', 'Close', { duration: 3000 });
             this.loadServiceLines();
           },
           error: (error) => {
-            console.error('Error deleting service line:', error);
+            this._snackBar.open('Failed to delete service line', 'Close', { duration: 3000 });
           }
         });
       }

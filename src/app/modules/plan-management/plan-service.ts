@@ -152,7 +152,7 @@ export class PlanService {
   }
 
   // Update existing plan
-  updatePlan(id: number, plan: Partial<PlanAction>): Observable<PlanAction> {
+  updatePlan(id: number, plan: PlanActionCreateRequest): Observable<PlanAction> {
     // const currentPlans = this._plans.value;
     // const index = currentPlans.findIndex(p => p.id === id);
     
@@ -197,7 +197,11 @@ export class PlanService {
 
   // Update plan status (for approvals)
   updatePlanStatus(id: number, status: ActionPlanStatus): Observable<PlanAction> {
-    return this.updatePlan(id, { statut: status });
+    return this._httpClient.patch<PlanAction>(
+      `${environment.apiUrl}/plans/${id}/status`,
+      { status }, // Send as JSON object
+      { headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   // Get plans for approval (Director only)
