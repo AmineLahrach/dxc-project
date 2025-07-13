@@ -180,7 +180,7 @@ export class PlanEditComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exerciceId: Number(formValue.exerciceId), // Ensure it's a number
+      exercice: { id: Number(formValue.exerciceId) }, // Send as object
       dueDate: formValue.dueDate ? new Date(formValue.dueDate).toISOString() : null,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,

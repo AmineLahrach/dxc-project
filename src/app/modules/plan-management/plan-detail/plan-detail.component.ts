@@ -239,7 +239,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exerciceId: formValue.exerciceId,
+      exercice: { id: Number(formValue.exerciceId) }, // Send as object
       dueDate: formValue.dueDate,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,

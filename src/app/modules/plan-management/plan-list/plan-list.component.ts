@@ -36,7 +36,7 @@ export class PlanListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
 
   dataSource: MatTableDataSource<PlanAction> = new MatTableDataSource();
-  displayedColumns: string[] = ['titre', 'statut', 'progress', 'dueDate', 'createdBy', 'actions'];
+  displayedColumns: string[] = ['select', 'titre', 'statut', 'progress', 'dueDate', 'createdBy', 'actions'];
   
   // Filter controls
   searchControl = new FormControl('');
@@ -183,7 +183,7 @@ export class PlanListComponent implements OnInit, OnDestroy {
     const duplicatedPlan = {
       titre: `${plan.titre} (Copy)`,
       description: plan.description,
-      exerciceId: plan.exercice.id!
+      exercice: { id: plan.exercice.id! } // Send as object
     };
 
     this._planService.createPlan(duplicatedPlan).subscribe(() => {

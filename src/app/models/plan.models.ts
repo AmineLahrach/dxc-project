@@ -38,8 +38,8 @@ export interface Exercise {
 }
 
 export enum ActionPlanStatus {
-  PLANNING = 'PLANIFICATION',
-  IN_PROGRESS = 'EN_COURS',
+  PLANNING = 'EN_COURS_PLANIFICATION',
+  IN_PROGRESS = 'PLANIFICATION',
   TRACKING = 'SUIVI_REALISATION',
   LOCKED = 'VERROUILLE'
 }
@@ -58,7 +58,7 @@ export interface PlanActionFilter {
 export interface PlanActionCreateRequest {
   titre: string;
   description: string;
-  exerciceId: number;
+  exercice: { id: number };
   dueDate?: string;
   variableActions?: VariableActionCreateRequest[];
 }
