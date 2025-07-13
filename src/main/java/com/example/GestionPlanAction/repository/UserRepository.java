@@ -44,4 +44,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
       LEFT JOIN FETCH u.serviceLine
       """)
     List<User> findAllWithRelations();
+    
+
+    @Query(value="SELECT u.nom, t.actif ,"
+    		+ "    t.id ,"
+    		+ "    t.email ,"
+    		+ "    t.nom ,"
+    		+ "    t.prenom ,"
+    		+ "    t.username ,"
+    		+"l.id,"
+    		+ "    l.nom,"+ "u.id from profil_utilisateur_association p left join profil u on p.id_profil=u.id left join user t on p.id_utilisateur=t.id left join service_line l on t.service_line_id=l.id",nativeQuery = true)
+	List<Object[]> findAllUserWithProfilesAsObjectArray();
+
+    
+    
+    
+    
+
 }
