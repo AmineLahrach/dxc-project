@@ -154,6 +154,10 @@ public class UserServiceImpl implements UserService {
 				userWithProfilesDTO.getProfils().addAll(profils);
 			} else {
 
+				
+				profils.add(new ProfilDTO((Long) obj[9], (String) obj[0]));
+
+
 				// Create a new DTO
 				userWithProfilesDTO.setNom((String) obj[0]);
 				userWithProfilesDTO.setActif((Boolean) obj[1]);
