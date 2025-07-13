@@ -46,7 +46,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllWithRelations();
     
 
-    @Query(value="SELECT u.nom, t.actif ,"
+    @Query(value="SELECT t.nom, t.actif ,"
     		+ "    t.id ,"
     		+ "    t.email ,"
     		+ "    t.nom ,"
