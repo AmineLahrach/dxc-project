@@ -163,7 +163,8 @@ public class UserServiceImpl implements UserService {
 				userWithProfilesDTO.setActif((Boolean) obj[1]);
 				userWithProfilesDTO.setEmail((String) obj[3]);
 				userWithProfilesDTO.setId((Long) obj[2]);
-				userWithProfilesDTO.setServiceLineId((String) obj[8]);
+				userWithProfilesDTO.setServiceLineName((String) obj[8]);
+				userWithProfilesDTO.setServiceLineId((Long) obj[9]);
 				userWithProfilesDTO.setPrenom((String) obj[5]);
 				userWithProfilesDTO.setUsername((String) obj[6]);
 				userWithProfilesDTO.setProfils(profils);

@@ -7,22 +7,22 @@ public class UserWithProfilesDTO {
     private Long id;
     private String nom;
     private String prenom;
-    public UserWithProfilesDTO(Long id, String nom, String prenom, String email, String username, Boolean actif,
-			String serviceLineId, Set<ProfilDTO> profils) {
-		super();
-		this.id = id;
-		this.nom = nom;
-		this.prenom = prenom;
-		this.email = email;
-		this.username = username;
-		this.actif = actif;
+
+
+	public String getServiceLineName() {
+		return serviceLineName;
+	}
+	public void setServiceLineName(String serviceLineName) {
+		this.serviceLineName = serviceLineName;
+	}
+	public void setServiceLineId(Long serviceLineId) {
 		this.serviceLineId = serviceLineId;
-		this.profils = profils;
 	}
 	private String email;
     private String username;
     private Boolean actif;
-    private String serviceLineId;
+    private String serviceLineName;
+    private Long serviceLineId;
     
     private Set<ProfilDTO> profils = new HashSet<>();
 
@@ -40,13 +40,29 @@ public class UserWithProfilesDTO {
     @Override
 	public String toString() {
 		return "UserWithProfilesDTO [id=" + id + ", nom=" + nom + ", prenom=" + prenom + ", email=" + email
-				+ ", username=" + username + ", actif=" + actif + ", serviceLineId=" + serviceLineId + ", profils="
-				+ profils + "]";
+				+ ", username=" + username + ", actif=" + actif + ", serviceLineName=" + serviceLineName
+				+ ", serviceLineId=" + serviceLineId + ", profils=" + profils + "]";
+	}
+	public Long getServiceLineId() {
+		return serviceLineId;
+	}
+	public UserWithProfilesDTO(Long id, String nom, String prenom, String email, String username, Boolean actif,
+			String serviceLineName, Long serviceLineId, Set<ProfilDTO> profils) {
+		super();
+		this.id = id;
+		this.nom = nom;
+		this.prenom = prenom;
+		this.email = email;
+		this.username = username;
+		this.actif = actif;
+		this.serviceLineName = serviceLineName;
+		this.serviceLineId = serviceLineId;
+		this.profils = profils;
 	}
 	public Boolean getActif() { return actif; }
     public void setActif(Boolean actif) { this.actif = actif; }
-    public String getServiceLineId() { return serviceLineId; }
-    public void setServiceLineId(String serviceLineId) { this.serviceLineId = serviceLineId; }
+   // public String getServiceLineId() { return serviceLineId; }
+   // public void setServiceLineId(String serviceLineId) { this.serviceLineId = serviceLineId; }
     public Set<ProfilDTO> getProfils() { return profils; }
     public void setProfils(Set<ProfilDTO> profils) { this.profils = profils; }
 }
