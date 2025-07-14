@@ -71,3 +71,16 @@ export interface VariableActionCreateRequest {
   vaMereId?: number;
   plan_action_id?: number;
 }
+
+export interface VariableActionListRequest {
+  id?: number;
+  description?: string;
+  poids?: number;
+  niveau?: number;
+  fige?: boolean;
+  planActionNom?: string;
+  planActionId?: number;
+  responsableId?: number;
+  responsableNom?: string;
+  responsablePrenom?: string;
+}

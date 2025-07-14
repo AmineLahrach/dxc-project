@@ -45,131 +45,7 @@ export class VariableService {
     return this._selectedVariable.asObservable();
   }
 
-  // Get all variables with optional filtering
   getVariables(filter?: VariableFilter): Observable<VariableAction[]> {
-    // const mockVariables: VariableAction[] = [
-    //   {
-    //     id: 1,
-    //     description: 'Customer Satisfaction Score',
-    //     poids: 0.4,
-    //     fige: false,
-    //     niveau: 1,
-    //     responsable: {
-    //       id: "1",
-    //       nom: 'Doe',
-    //       prenom: 'John',
-    //       username: 'john.doe',
-    //       email: 'john.doe@dxc.com',
-    //       roles: ['ROLE_COLLABORATEUR'],
-    //       serviceLine: 'Customer Service',
-    //       actif: true,
-    //       createdAt: '2024-01-15T00:00:00Z',
-    //       updatedAt: '2025-01-07T00:00:00Z'
-    //     },
-    //     planAction: {
-    //       id: 1,
-    //       titre: 'Customer Experience Improvement',
-    //       description: 'Enhance customer satisfaction',
-    //       statut: 'EN_COURS' as any,
-    //       exercice: { id: 1, annee: 2025, verrouille: false }
-    //     },
-    //     progress: 75,
-    //     status: 'On Track'
-    //   },
-    //   {
-    //     id: 2,
-    //     description: 'Response Time Improvement',
-    //     poids: 0.3,
-    //     fige: false,
-    //     niveau: 2,
-    //     vaMere: {
-    //       id: 1,
-    //       description: 'Customer Satisfaction Score',
-    //       poids: 0.4,
-    //       fige: false,
-    //       niveau: 1,
-    //       responsable: {} as User,
-    //       planAction: {} as PlanAction
-    //     },
-    //     responsable: {
-    //       id: "2",
-    //       nom: 'Smith',
-    //       prenom: 'Jane',
-    //       username: 'jane.smith',
-    //       email: 'jane.smith@dxc.com',
-    //       roles: ['ROLE_COLLABORATEUR'],
-    //       serviceLine: 'Customer Service',
-    //       actif: true,
-    //       createdAt: '2024-01-10T00:00:00Z',
-    //       updatedAt: '2025-01-05T00:00:00Z'
-    //     },
-    //     planAction: {
-    //       id: 1,
-    //       titre: 'Customer Experience Improvement',
-    //       description: 'Enhance customer satisfaction',
-    //       statut: 'EN_COURS' as any,
-    //       exercice: { id: 1, annee: 2025, verrouille: false }
-    //     },
-    //     progress: 60,
-    //     status: 'Behind Schedule'
-    //   },
-    //   {
-    //     id: 3,
-    //     description: 'Digital Transformation KPIs',
-    //     poids: 0.5,
-    //     fige: true,
-    //     niveau: 1,
-    //     responsable: {
-    //       id: "3",
-    //       nom: 'Johnson',
-    //       prenom: 'Mike',
-    //       username: 'mike.johnson',
-    //       email: 'mike.johnson@dxc.com',
-    //       roles: ['ROLE_ADMINISTRATEUR'],
-    //       serviceLine: 'Information Technology',
-    //       actif: true,
-    //       createdAt: '2024-01-01T00:00:00Z',
-    //       updatedAt: '2025-01-01T00:00:00Z'
-    //     },
-    //     planAction: {
-    //       id: 2,
-    //       titre: 'Digital Transformation Initiative',
-    //       description: 'Modernize business processes',
-    //       statut: 'SUIVI_REALISATION' as any,
-    //       exercice: { id: 1, annee: 2025, verrouille: false }
-    //     },
-    //     progress: 90,
-    //     status: 'Ahead of Schedule'
-    //   }
-    // ];
-
-    // // Apply filtering
-    // let filteredVariables = mockVariables;
-    // if (filter) {
-    //   if (filter.searchTerm) {
-    //     const term = filter.searchTerm.toLowerCase();
-    //     filteredVariables = filteredVariables.filter(variable =>
-    //       variable.description.toLowerCase().includes(term) ||
-    //       variable.responsable.nom.toLowerCase().includes(term) ||
-    //       variable.responsable.prenom.toLowerCase().includes(term)
-    //     );
-    //   }
-    //   if (filter.planId) {
-    //     filteredVariables = filteredVariables.filter(variable => 
-    //       variable.planAction.id === filter.planId
-    //     );
-    //   }
-    //   if (filter.niveau?.length) {
-    //     filteredVariables = filteredVariables.filter(variable => 
-    //       filter.niveau!.includes(variable.niveau)
-    //     );
-    //   }
-    // }
-
-    // this._variables.next(filteredVariables);
-    // return of(filteredVariables);
-
-    // Uncomment when backend is ready:
     let params = new HttpParams();
     if (filter) {
       if (filter.searchTerm) params = params.set('search', filter.searchTerm);
@@ -183,14 +59,18 @@ export class VariableService {
     return this._httpClient.get<VariableAction>(`${environment.apiUrl}/variable-actions/${id}`);
   }
 
+  getVariableByIdForEdit(id: number): Observable<VariableAction> {   
+    return this._httpClient.get<VariableAction>(`${environment.apiUrl}/variable-actions/edit/${id}`);
+  }
+
   // Create new variable
-  createVariable(variable: VariableActionCreateRequest): Observable<VariableAction> {
+  createVariable(variable: any): Observable<VariableAction> {
     
     return this._httpClient.post<VariableAction>(`${environment.apiUrl}/variable-actions`, variable);
   }
 
   // Update variable
-  updateVariable(id: number, variable: Partial<VariableAction>): Observable<VariableAction> {
+  updateVariable(id: number, variable: any): Observable<VariableAction> {
     
     return this._httpClient.put<VariableAction>(`${environment.apiUrl}/variable-actions/${id}`, variable);
   }

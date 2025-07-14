@@ -166,7 +166,7 @@
                         </th>
                         <td mat-cell *matCellDef="let variable">
                             <span class="text-sm font-medium">
-                                {{variable?.planAction?.titre || 'No Plan Assigned'}}
+                                {{variable?.planActionNom || 'No Plan Assigned'}}
                             </span>
                         </td>
                     </ng-container>
@@ -180,12 +180,12 @@
                         <div class="flex items-center">
                             <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
                                 <span class="text-xs font-medium">
-                                    {{variable.responsable.prenom.charAt(0)}}{{variable.responsable.nom.charAt(0)}}
+                                    {{variable.responsablePrenom.charAt(0)}}{{variable.responsableNom.charAt(0)}}
                                 </span>
                             </div>
                             <div>
                                 <div class="text-sm font-medium">{{getResponsibleName(variable)}}</div>
-                                <div class="text-xs text-secondary">{{variable.responsable.serviceLine}}</div>
+                                <div class="text-xs text-secondary">{{'serviceLine'}}</div>
                             </div>
                         </div>
                     </td>
@@ -247,8 +247,8 @@
                     <td mat-cell *matCellDef="let variable">
                         <span
                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                            [class]="getStatusColor(variable.status || '')">
-                            {{variable.status || 'Not Set'}}
+                            [class]="getStatusColor(variable?.status || '')">
+                            {{variable?.status || 'Not Set'}}
                         </span>
                     </td>
                 </ng-container>

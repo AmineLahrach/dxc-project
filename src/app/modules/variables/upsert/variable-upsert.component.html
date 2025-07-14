@@ -85,9 +85,25 @@
                     <!-- Responsible -->
                     <mat-form-field class="md:col-span-2">
                         <mat-label>Responsible Person</mat-label>
-                        <input matInput formControlName="responsable" placeholder="Enter responsible person">
-                        <mat-error *ngIf="formControls.responsable.invalid && formControls.responsable.touched">
+                        <mat-select formControlName="responsable_id">
+                            <mat-option *ngFor="let user of users" [value]="user.id">
+                                {{user.prenom}} {{user.nom}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="formControls.responsable_id.invalid && formControls.responsable_id.touched">
                             Responsible person is required
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Action Plan -->
+                    <mat-form-field class="md:col-span-2">
+                        <mat-label>Action Plan</mat-label>
+                        <mat-select formControlName="plan_action_id">
+                            <mat-option *ngFor="let plan of plans" [value]="plan.id">
+                                {{plan.titre}}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="formControls.plan_action_id.invalid && formControls.plan_action_id.touched">
+                            Action Plan is required
                         </mat-error>
                     </mat-form-field>
                 </div>

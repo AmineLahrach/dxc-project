@@ -8,7 +8,7 @@ import { VariableService, VariableFilter } from '../variable-service';
 import { PlanService } from 'app/modules/plan-management/plan-service';
 import { AuthService } from 'app/core/auth/auth.service';
 import { VariableAction } from 'app/models/business.models';
-import { PlanAction } from 'app/models/plan.models';
+import { PlanAction, VariableActionListRequest } from 'app/models/plan.models';
 import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from 'app/models/auth.models';
@@ -23,7 +23,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
-  dataSource: MatTableDataSource<VariableAction> = new MatTableDataSource();
+  dataSource: MatTableDataSource<VariableActionListRequest> = new MatTableDataSource();
   displayedColumns: string[] = ['description', 'plan', 'responsible', 'poids', 'niveau', 'progress', 'status', 'actions'];
   
   // Filter controls
@@ -33,7 +33,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
   
   // Data
   plans: PlanAction[] = [];
-  selectedVariables: VariableAction[] = [];
+  selectedVariables: VariableActionListRequest[] = [];
   currentUser: User | null = null; // Add this line
   
   // Filter options
@@ -71,23 +71,23 @@ export class VariableListComponent implements OnInit, OnDestroy {
   }
 
   private initializeDataSource(): void {
-    this.dataSource.filterPredicate = (data: VariableAction, filter: string) => {
+    this.dataSource.filterPredicate = (data: VariableActionListRequest, filter: string) => {
       const searchTerm = filter.toLowerCase();
       return data.description.toLowerCase().includes(searchTerm) ||
-             data.responsable.nom.toLowerCase().includes(searchTerm) ||
-             data.responsable.prenom.toLowerCase().includes(searchTerm) ||
-             data.planAction.titre.toLowerCase().includes(searchTerm);
+             data.responsableNom.toLowerCase().includes(searchTerm) ||
+             data.responsablePrenom.toLowerCase().includes(searchTerm) ||
+             data.planActionNom.toLowerCase().includes(searchTerm);
     };
 
-    this.dataSource.sortingDataAccessor = (data: VariableAction, sortHeaderId: string) => {
+    this.dataSource.sortingDataAccessor = (data: VariableActionListRequest, sortHeaderId: string) => {
       switch (sortHeaderId) {
         case 'description': return data.description;
-        case 'plan': return data.planAction.titre;
-        case 'responsible': return `${data.responsable.prenom} ${data.responsable.nom}`;
+        case 'plan': return data.planActionNom;
+        case 'responsible': return `${data.responsablePrenom} ${data.responsableNom}`;
         case 'poids': return data.poids;
         case 'niveau': return data.niveau;
-        case 'progress': return data.progress || 0;
-        case 'status': return data.status || '';
+        case 'progress': return 0;
+        case 'status': return '';
         default: return '';
       }
     };
@@ -164,9 +164,9 @@ export class VariableListComponent implements OnInit, OnDestroy {
     if (searchTerm) {
       filteredData = filteredData.filter(variable =>
         variable.description.toLowerCase().includes(searchTerm) ||
-        variable.responsable.nom.toLowerCase().includes(searchTerm) ||
-        variable.responsable.prenom.toLowerCase().includes(searchTerm) ||
-        variable.planAction.titre.toLowerCase().includes(searchTerm)
+        variable.responsableNom.toLowerCase().includes(searchTerm) ||
+        variable.responsablePrenom.toLowerCase().includes(searchTerm) ||
+        variable.planActionNom.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -174,7 +174,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
     const selectedPlanId = this.planFilter.value;
     if (selectedPlanId) {
       filteredData = filteredData.filter(variable => 
-        variable.planAction.id === parseInt(selectedPlanId)
+        variable.planActionId === parseInt(selectedPlanId)
       );
     }
 
@@ -195,7 +195,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
   }
 
   viewVariable(variable: VariableAction): void {
-    this._router.navigate(['/variables', variable.id]);
+    this._router.navigate(['/variables/edit', variable.id]);
   }
 
   editVariable(variable: VariableAction): void {
@@ -243,8 +243,8 @@ export class VariableListComponent implements OnInit, OnDestroy {
     }
   }
 
-  getResponsibleName(variable: VariableAction): string {
-    return `${variable.responsable.prenom} ${variable.responsable.nom}`;
+  getResponsibleName(variable: VariableActionListRequest): string {
+    return `${variable.responsablePrenom} ${variable.responsableNom}`;
   }
 
   canEdit(variable: VariableAction): boolean {
