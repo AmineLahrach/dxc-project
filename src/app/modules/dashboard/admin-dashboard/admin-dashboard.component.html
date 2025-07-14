@@ -1,61 +1,72 @@
-<div class="flex flex-col flex-auto min-w-0">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
-        <div class="text-4xl font-extrabold tracking-tight leading-none">Dashboard Administrateur</div>
+<div class="container">
+    <!-- Loading spinner -->
+    <div *ngIf="isLoading" class="flex justify-center my-6">
+        <mat-spinner diameter="40"></mat-spinner>
     </div>
-    
-    <!-- Stats Cards -->
-    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-        <fuse-card class="flex flex-col p-6">
-            <div class="text-lg font-medium text-secondary">Total Utilisateurs</div>
-            <div class="text-3xl font-bold mt-2">{{stats.totalUsers}}</div>
-        </fuse-card>
-        
-        <fuse-card class="flex flex-col p-6">
-            <div class="text-lg font-medium text-secondary">Plans d'Action</div>
-            <div class="text-3xl font-bold mt-2">{{stats.totalPlans}}</div>
-        </fuse-card>
-        
-        <fuse-card class="flex flex-col p-6">
-            <div class="text-lg font-medium text-secondary">Service Lines</div>
-            <div class="text-3xl font-bold mt-2">{{stats.totalServiceLines}}</div>
-        </fuse-card>
-        
-        <fuse-card class="flex flex-col p-6">
-            <div class="text-lg font-medium text-secondary">Exercices Actifs</div>
-            <div class="text-3xl font-bold mt-2">{{stats.activeExercises}}</div>
-        </fuse-card>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="text-red-500 bg-red-100 p-4 rounded mb-6">
+        {{ error }}
     </div>
-    
-    <!-- Quick Actions -->
-    <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <fuse-card class="p-6">
-            <div class="text-lg font-semibold mb-4">Actions Rapides</div>
-            <div class="space-y-4">
-                <button mat-stroked-button color="primary" (click)="createUser()">
-                    <mat-icon>person_add</mat-icon>
-                    Ajouter Utilisateur
-                </button>
-                <button mat-stroked-button color="primary" (click)="manageProfiles()">
-                    <mat-icon>admin_panel_settings</mat-icon>
-                    Gérer Profils
-                </button>
-                <button mat-stroked-button color="primary" (click)="viewAuditLogs()">
-                    <mat-icon>history</mat-icon>
-                    Logs d'Audit
-                </button>
-            </div>
-        </fuse-card>
-        
+
+    <!-- Dashboard content (only shown when not loading and no errors) -->
+    <div *ngIf="!isLoading && !error">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <fuse-card class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-lg font-medium">Total Users</div>
+                        <div class="text-3xl font-bold mt-2">{{ stats.totalUsers }}</div>
+                    </div>
+                    <mat-icon class="text-blue-500 text-3xl">people</mat-icon>
+                </div>
+            </fuse-card>
+
+            <fuse-card class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-lg font-medium">Total Plans</div>
+                        <div class="text-3xl font-bold mt-2">{{ stats.totalPlans }}</div>
+                    </div>
+                    <mat-icon class="text-green-500 text-3xl">assignment</mat-icon>
+                </div>
+            </fuse-card>
+
+            <fuse-card class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-lg font-medium">Service Lines</div>
+                        <div class="text-3xl font-bold mt-2">{{ stats.totalServiceLines }}</div>
+                    </div>
+                    <mat-icon class="text-purple-500 text-3xl">business</mat-icon>
+                </div>
+            </fuse-card>
+
+            <fuse-card class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-lg font-medium">Active Exercises</div>
+                        <div class="text-3xl font-bold mt-2">{{ stats.activeExercises }}</div>
+                    </div>
+                    <mat-icon class="text-amber-500 text-3xl">fitness_center</mat-icon>
+                </div>
+            </fuse-card>
+        </div>
+
         <!-- Recent Activities -->
         <fuse-card class="p-6">
-            <div class="text-lg font-semibold mb-4">Activités Récentes</div>
-            <div class="space-y-3">
-                <div *ngFor="let activity of recentActivities" class="flex items-center space-x-3">
-                    <mat-icon class="text-blue-500">{{activity.icon}}</mat-icon>
-                    <div class="flex-1">
-                        <div class="text-sm">{{activity.description}}</div>
-                        <div class="text-xs text-gray-500">{{activity.timestamp | date:'short'}}</div>
+            <div class="text-xl font-bold mb-4">Recent Activities</div>
+            <div *ngIf="recentActivities.length === 0" class="text-gray-500 py-4 text-center">
+                No recent activities
+            </div>
+            <div *ngFor="let activity of recentActivities" class="border-b py-3 last:border-b-0">
+                <div class="flex items-start">
+                    <mat-icon class="mr-3 text-blue-500">{{ activity.icon || 'info' }}</mat-icon>
+                    <div>
+                        <div class="font-medium">{{ activity.title }}</div>
+                        <div class="text-sm text-gray-600">{{ activity.description }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ activity.timestamp | date:'medium' }}</div>
                     </div>
                 </div>
             </div>
