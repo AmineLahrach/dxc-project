@@ -48,4 +48,12 @@ public class VariableActionService {
     public void deleteVariableAction(Long id) {
         variableActionRepository.deleteById(id);
     }
+
+    
+	public void save(List<VariableAction> variableActionsToSave) {
+		
+		variableActionRepository.saveAll(variableActionsToSave);
+		// TODO Auto-generated method stub
+		
+	}
 }

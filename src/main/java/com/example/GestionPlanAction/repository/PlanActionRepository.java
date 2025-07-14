@@ -25,4 +25,8 @@ public interface PlanActionRepository extends JpaRepository<PlanAction, Long> {
     
     @Query("SELECT p.statut, COUNT(p) FROM PlanAction p GROUP BY p.statut")
     List<Object[]> getStatusDistribution();
+
+    
+    @Query(value = "SELECT p.* , v.* ,e.* ,u.* FROM plan_action p left join variable_action v on p.id=v.plan_action_id left join exercice e on e.id=p.id left join user u on u.id=v.responsable_id",nativeQuery = true)
+	List<Object[]> findAllplans();
 }

@@ -17,6 +17,8 @@ public class ExerciceServiceImpl implements ExerciceService {
 
     @Override
     public List<Exercice> getAll() {
+    	List<Exercice> exercices = repository.findAll();
+    	System.out.println("Nombre d'exercices trouvés: " + exercices.size());
         return repository.findAll();
     }
 

@@ -12,53 +12,43 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    
-    // Method needed for authentication - EAGER fetch to ensure profiles are loaded
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
-    Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String username, @Param("usernameOrEmail") String email);
-    
-    // Additional methods for user management
-    Optional<User> findByUsername(String username);
-    
-    @Query(value = "SELECT * FROM user_with_profiles", nativeQuery = true)
-    List<UserWithProfilView> findAllUserWithProfiles();
 
-    Optional<User> findByEmail(String email);
-    
-    Boolean existsByUsername(String username);
-    
-    Boolean existsByEmail(String email);
-    
-    // Method to load user with all relations for security context
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.id = :id")
-    Optional<User> findByIdWithProfiles(@Param("id") Long id);
-    
-    // Check if user has any profiles
-    @Query("SELECT COUNT(p) > 0 FROM User u JOIN u.profils p WHERE u.username = :username")
-    boolean hasAnyProfile(@Param("username") String username);
+	// Method needed for authentication - EAGER fetch to ensure profiles are loaded
+	@Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.username = :usernameOrEmail OR u.email = :usernameOrEmail")
+	Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String username,
+			@Param("usernameOrEmail") String email);
 
-    @Query("""
-      SELECT DISTINCT u
-      FROM User u
-      LEFT JOIN FETCH u.profils p
-      LEFT JOIN FETCH u.serviceLine
-      """)
-    List<User> findAllWithRelations();
-    
+	// Additional methods for user management
+	Optional<User> findByUsername(String username);
 
-    @Query(value="SELECT t.nom, t.actif ,"
-    		+ "    t.id ,"
-    		+ "    t.email ,"
-    		+ "    t.nom ,"
-    		+ "    t.prenom ,"
-    		+ "    t.username ,"
-    		+"l.id,"
-    		+ "    l.nom,"+ "u.id from profil_utilisateur_association p left join profil u on p.id_profil=u.id left join user t on p.id_utilisateur=t.id left join service_line l on t.service_line_id=l.id",nativeQuery = true)
+	@Query(value = "SELECT * FROM user_with_profiles", nativeQuery = true)
+	List<UserWithProfilView> findAllUserWithProfiles();
+
+	Optional<User> findByEmail(String email);
+
+	Boolean existsByUsername(String username);
+
+	Boolean existsByEmail(String email);
+
+	// Method to load user with all relations for security context
+	@Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profils LEFT JOIN FETCH u.serviceLine WHERE u.id = :id")
+	Optional<User> findByIdWithProfiles(@Param("id") Long id);
+
+	// Check if user has any profiles
+	@Query("SELECT COUNT(p) > 0 FROM User u JOIN u.profils p WHERE u.username = :username")
+	boolean hasAnyProfile(@Param("username") String username);
+
+	@Query("""
+			SELECT DISTINCT u
+			FROM User u
+			LEFT JOIN FETCH u.profils p
+			LEFT JOIN FETCH u.serviceLine
+			""")
+	List<User> findAllWithRelations();
+
+	@Query(value = "SELECT t.nom, t.actif ," + "    t.id ," + "    t.email ," + "    t.nom ," + "    t.prenom ,"
+			+ "    t.username ," + "l.id," + "    l.nom,"
+			+ "u.id,"+"u.nom from profil_utilisateur_association p left join profil u on p.id_profil=u.id left join user t on p.id_utilisateur=t.id left join service_line l on t.service_line_id=l.id", nativeQuery = true)
 	List<Object[]> findAllUserWithProfilesAsObjectArray();
-
-    
-    
-    
-    
 
 }
