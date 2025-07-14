@@ -50,7 +50,7 @@
             <!-- Theme -->
             <div class="text-secondary text-md font-semibold">THEME</div>
             <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                @for (theme of config.themes; track theme) {
+                @for (theme of config.themes; track theme.id) {
                     <div
                         class="bg-hover flex cursor-pointer items-center justify-center rounded-full px-4 py-3 ring-inset ring-primary"
                         [class.ring-2]="config.theme === theme.id"

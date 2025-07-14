@@ -69,4 +69,5 @@ export interface VariableActionCreateRequest {
   niveau: number;
   responsable: {id : number};
   vaMereId?: number;
+  plan_action_id?: number;
 }

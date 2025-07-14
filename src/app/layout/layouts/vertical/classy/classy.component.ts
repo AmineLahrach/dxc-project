@@ -90,28 +90,28 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
      */
     ngOnInit(): void {
         // Initialize empty objects
-        this.navigation = {
-            compact: [],
-            default: [],
-            futuristic: [],
-            horizontal: [],
-        };
+        // this.navigation = {
+        //     compact: [],
+        //     default: [],
+        //     futuristic: [],
+        //     horizontal: [],
+        // };
 
         // Initialize user with required properties
-        this.user = {
-            id: '',
-            nom: '',
-            prenom: '',
-            username: '',
-            roles: [],
-            serviceLine: '',
-            actif: true,
-            createdAt: '',
-            updatedAt: '',
-            avatar: '',
-            status: 'online', // Default status
-            email: ''
-        };
+        // this.user = {
+        //     id: '',
+        //     nom: '',
+        //     prenom: '',
+        //     username: '',
+        //     roles: [],
+        //     serviceLine: '',
+        //     actif: true,
+        //     createdAt: '',
+        //     updatedAt: '',
+        //     avatar: '',
+        //     status: 'online', // Default status
+        //     email: ''
+        // };
 
         // Subscribe to navigation data
         this._navigationService.navigation$
@@ -125,6 +125,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: User) => {
                 this.user = user;
+                console.log('User data:', this.user);
             });
 
         // Subscribe to media changes

@@ -225,7 +225,8 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
         poids: Number(va.poids),
         niveau: Number(va.niveau),
         responsable: { id: va.responsableId ? Number(va.responsableId) : 0 },
-        vaMereId: va.vaMereId ? Number(va.vaMereId) : null
+        vaMereId: va.vaMereId ? Number(va.vaMereId) : null,
+        plan_action_id: this.plan!.id
       }))
     };
 

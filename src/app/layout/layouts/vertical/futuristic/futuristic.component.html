@@ -13,7 +13,7 @@
     <ng-container fuseVerticalNavigationHeader>
         <!-- Logo -->
         <div class="flex h-20 items-center p-6 pb-0">
-            <img class="w-30" src="images/logo/logo-text-on-dark.svg" />
+            <img src="logo.jpg" alt="Logo image" />
         </div>
     </ng-container>
     <!-- Navigation footer hook -->
@@ -25,12 +25,12 @@
                 <div
                     class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-normal text-current opacity-80"
                 >
-                    {{ user?.nom ? user?.nom : 'No name' }}
+                    {{ user?.nom ? user?.nom : 'No namea' }}
                 </div>
                 <div
                     class="mt-0.5 w-full overflow-hidden text-ellipsis whitespace-nowrap text-sm leading-normal text-current opacity-50"
                 >
-                    {{ user?.email ? user?.email : 'No email' }}
+                    {{ user?.email ? user?.email : 'No emaila' }}
                 </div>
             </div>
         </div>
@@ -81,13 +81,13 @@
     </div>
 
     <!-- Footer -->
-    <div
+    <!-- <div
         class="bg-card relative z-49 flex h-14 w-full flex-0 items-center justify-start border-t px-4 dark:bg-transparent md:px-6 print:hidden"
     >
         <span class="text-secondary font-medium"
             >Fuse &copy; {{ currentYear }}</span
         >
-    </div>
+    </div> -->
 </div>
 
 <!-- Quick chat -->

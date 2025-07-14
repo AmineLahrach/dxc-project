@@ -79,6 +79,31 @@ export class FuturisticLayoutComponent implements OnInit, OnDestroy {
      * On init
      */
     ngOnInit(): void {
+
+        // Initialize empty objects
+        // this.navigation = {
+        //     compact: [],
+        //     default: [],
+        //     futuristic: [],
+        //     horizontal: [],
+        // };
+
+        // // Initialize user with required properties
+        // this.user = {
+        //     id: '',
+        //     nom: '',
+        //     prenom: '',
+        //     username: '',
+        //     roles: [],
+        //     serviceLine: '',
+        //     actif: true,
+        //     createdAt: '',
+        //     updatedAt: '',
+        //     avatar: '',
+        //     status: 'online', // Default status
+        //     email: ''
+        // };
+
         // Subscribe to navigation data
         this._navigationService.navigation$
             .pipe(takeUntil(this._unsubscribeAll))
@@ -91,6 +116,7 @@ export class FuturisticLayoutComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: User) => {
                 this.user = user;
+                console.log('User data:', user);
             });
 
         // Subscribe to media changes

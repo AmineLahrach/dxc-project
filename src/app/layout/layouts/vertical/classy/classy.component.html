@@ -25,14 +25,14 @@
         <!-- User -->
         <div class="flex w-full flex-col items-center p-4">
             <div class="relative h-24 w-24">
-                @if (user.avatar) {
+                @if (user?.avatar) {
                     <img
                         class="h-full w-full rounded-full"
                         [src]="user?.avatar"
                         alt="User avatar"
                     />
                 }
-                @if (!user.avatar) {
+                @if (!user?.avatar) {
                     <mat-icon
                         class="icon-size-24"
                         [svgIcon]="'heroicons_solid:user-circle'"
