@@ -16,7 +16,7 @@ import { SharedModule } from 'app/modules/shared/shared.module';
 
 @Component({
   selector: 'app-variable-list',
-    imports: [SharedModule, MatTableModule],
+    imports: [SharedModule],
   templateUrl: './variable-list.component.html'
 })
 export class VariableListComponent implements OnInit, OnDestroy {
