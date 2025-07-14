@@ -126,16 +126,16 @@ export class UserUpsertDialogComponent implements OnInit, OnDestroy {
         }
 
         // Use setTimeout to defer loading state change and avoid ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
+        // setTimeout(() => {
           this.loading = false;
-        });
+        // });
       },
       error: (error) => {
         console.error('Error fetching dropdown data:', error);
 
         setTimeout(() => {
           this._snackBar.open('Failed to load form data. Please try again.', 'Close', { duration: 3000 });
-          this.loading = false;
+          // this.loading = false;
         });
 
         this._dialogRef.close(false);

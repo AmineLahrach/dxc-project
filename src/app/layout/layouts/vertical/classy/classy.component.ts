@@ -125,7 +125,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((user: User) => {
                 this.user = user;
-                console.log('User data:', this.user);
             });
 
         // Subscribe to media changes
