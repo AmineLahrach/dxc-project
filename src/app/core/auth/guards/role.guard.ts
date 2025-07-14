@@ -22,7 +22,8 @@ export class RoleGuard implements CanActivate {
     const hasRole = requiredRoles.some(role => this._authService.hasRole(role));
     
     if (!hasRole) {
-      this._router.navigate(['/dashboard']);
+      // Redirect to signout instead of dashboard
+      this._router.navigate(['/sign-out']);
       return false;
     }
 

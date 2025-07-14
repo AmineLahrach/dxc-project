@@ -46,7 +46,7 @@ export const appRoutes: Route[] = [
     },
     {
         path: '',
-        // canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
         // canActivateChild: [AuthGuard],
         component: LayoutComponent,
         resolve: {
@@ -64,19 +64,20 @@ export const appRoutes: Route[] = [
             {path: 'plans', loadChildren: () => import('app/modules/plan-management/plan-management.routes')},
             {path: 'profiles', loadChildren: () => import('app/modules/profile-form/profile.routes')},
             {path: 'service-lines', loadChildren: () => import('app/modules/service-line/service-line.routes')},
+            {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
             {path: 'variables', component: VariableListComponent}
         ]
     },
-    {
-        path: '',
-        canActivate: [AuthGuard],
-        canActivateChild: [AuthGuard],
-        component: LayoutComponent,
-        resolve: {
-            initialData: initialDataResolver
-        },
-        children: [
-            {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
-        ]
-    }
+    // {
+    //     path: '',
+    //     canActivate: [AuthGuard],
+    //     canActivateChild: [AuthGuard],
+    //     component: LayoutComponent,
+    //     resolve: {
+    //         initialData: initialDataResolver
+    //     },
+    //     children: [
+    //         {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
+    //     ]
+    // }
 ];

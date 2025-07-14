@@ -173,7 +173,7 @@ export class AuthService {
     signOut(): Observable<any> {
         
         localStorage.removeItem('accessToken');
-        
+        localStorage.removeItem('userId');
         localStorage.removeItem('currentUser');
         this._authenticated = false;
         this._currentUser.next(null);
@@ -271,7 +271,7 @@ export class AuthService {
      */
     isDirector(): boolean {
         const user = this.getCurrentUserFromStorage() || this._currentUser.value;
-        return !!user && Array.isArray(user.roles) && user.roles.includes('ROLE_DIRECTOR');
+        return !!user && Array.isArray(user.roles) && user.roles.includes('DIRECTOR');
     }
 
     /**
@@ -279,7 +279,7 @@ export class AuthService {
      */
     isCollaborator(): boolean {
         const user = this.getCurrentUserFromStorage() || this._currentUser.value;
-        return !!user && Array.isArray(user.roles) && user.roles.includes('ROLE_COLLABORATOR');
+        return !!user && Array.isArray(user.roles) && user.roles.includes('COLLABORATEUR');
     }
 
     constructor() {

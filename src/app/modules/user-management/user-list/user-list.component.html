@@ -6,7 +6,7 @@
             <!-- Breadcrumbs -->
             <div class="flex flex-wrap items-center font-medium">
                 <div>
-                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard']">Home</a>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard/redirect-to-dashboard']">Home</a>
                 </div>
                 <div class="flex items-center ml-1 whitespace-nowrap">
                     <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
@@ -209,7 +209,7 @@
                         </th>
                         <td mat-cell *matCellDef="let user">
                             <span class="text-sm">
-                                {{user?.serviceLineId}}
+                                {{user?.serviceLineName}}
                             </span>
                         </td>
                     </ng-container>
