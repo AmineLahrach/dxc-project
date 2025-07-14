@@ -4,7 +4,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-import { VariableService, VariableFilter } from './variable-service';
+import { VariableService, VariableFilter } from '../variable-service';
 import { PlanService } from 'app/modules/plan-management/plan-service';
 import { AuthService } from 'app/core/auth/auth.service';
 import { VariableAction } from 'app/models/business.models';

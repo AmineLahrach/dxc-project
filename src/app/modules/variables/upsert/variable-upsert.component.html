@@ -1,0 +1,115 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard/redirect-to-dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <a class="ml-1 whitespace-nowrap text-primary-500" [routerLink]="['/variables']">Variables</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">{{isEditMode ? 'Edit' : 'Create'}}</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    {{isEditMode ? 'Edit Variable' : 'Create Variable'}}
+                </h2>
+                <p class="text-secondary">
+                    {{isEditMode ? 'Update variable details' : 'Define a new variable for your action plan'}}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+            <button
+                mat-stroked-button
+                (click)="router.navigate(['/variables'])">
+                Cancel
+            </button>
+            <button
+                mat-flat-button
+                color="primary"
+                (click)="onSubmit()"
+                [disabled]="variableForm.invalid">
+                <mat-spinner diameter="20" *ngIf="variableForm.pending"></mat-spinner>
+                <mat-icon *ngIf="!variableForm.pending" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Variable</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <form [formGroup]="variableForm" class="space-y-8" (ngSubmit)="onSubmit()">
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="flex items-center mb-6">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:variable'"></mat-icon>
+                    <h3 class="text-lg font-semibold">Variable Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Description -->
+                    <mat-form-field class="md:col-span-2">
+                        <mat-label>Description</mat-label>
+                        <input matInput formControlName="description" placeholder="Enter variable description">
+                        <mat-error *ngIf="formControls.description.invalid && formControls.description.touched">
+                            Description is required
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Weight -->
+                    <mat-form-field>
+                        <mat-label>Weight</mat-label>
+                        <input matInput type="number" formControlName="poids" min="0" placeholder="Weight">
+                        <mat-error *ngIf="formControls.poids.invalid && formControls.poids.touched">
+                            Weight is required and must be positive
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Level -->
+                    <mat-form-field>
+                        <mat-label>Level</mat-label>
+                        <mat-select formControlName="niveau">
+                            <mat-option *ngFor="let level of levelOptions" [value]="level.value">{{level.label}}</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="formControls.niveau.invalid && formControls.niveau.touched">
+                            Level is required
+                        </mat-error>
+                    </mat-form-field>
+                    <!-- Responsible -->
+                    <mat-form-field class="md:col-span-2">
+                        <mat-label>Responsible Person</mat-label>
+                        <input matInput formControlName="responsable" placeholder="Enter responsible person">
+                        <mat-error *ngIf="formControls.responsable.invalid && formControls.responsable.touched">
+                            Responsible person is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4">
+                <button
+                    type="button"
+                    mat-stroked-button
+                    (click)="router.navigate(['/variables'])">
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="variableForm.invalid">
+                    <mat-spinner diameter="20" *ngIf="variableForm.pending"></mat-spinner>
+                    <mat-icon *ngIf="!variableForm.pending" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                    <span class="ml-2">{{isEditMode ? 'Update' : 'Create'}} Variable</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

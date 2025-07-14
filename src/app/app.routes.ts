@@ -65,7 +65,7 @@ export const appRoutes: Route[] = [
             {path: 'profiles', loadChildren: () => import('app/modules/profile-form/profile.routes')},
             {path: 'service-lines', loadChildren: () => import('app/modules/service-line/service-line.routes')},
             {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
-            {path: 'variables', component: VariableListComponent}
+            {path: 'variables', loadChildren: () => import('app/modules/variables/variable-routes')}
         ]
     },
     // {

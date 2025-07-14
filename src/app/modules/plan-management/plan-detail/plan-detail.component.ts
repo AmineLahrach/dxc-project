@@ -221,6 +221,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       statut: this.plan?.statut || ActionPlanStatus.PLANNING,
       exercice: { id: Number(formValue.exerciceId) }, // Send as object
       variableActions: formValue.variableActions?.map((va: any) => ({
+        id: va.id ? va.id : null,
         description: va.description,
         poids: Number(va.poids),
         niveau: Number(va.niveau),

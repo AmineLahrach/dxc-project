@@ -179,74 +179,19 @@ export class VariableService {
   }
 
   // Get variable by ID
-  getVariableById(id: number): Observable<VariableAction> {
-    // const variable = this._variables.value.find(v => v.id === id);
-    // if (variable) {
-    //   this._selectedVariable.next(variable);
-    //   return of(variable);
-    // }
-    // throw new Error('Variable not found');
-
-    // Uncomment when backend is ready:
+  getVariableById(id: number): Observable<VariableAction> {   
     return this._httpClient.get<VariableAction>(`${environment.apiUrl}/variable-actions/${id}`);
   }
 
   // Create new variable
   createVariable(variable: VariableActionCreateRequest): Observable<VariableAction> {
-    // const newVariable: VariableAction = {
-    //   id: Math.floor(Math.random() * 1000),
-    //   description: variable.description,
-    //   poids: variable.poids,
-    //   fige: false,
-    //   niveau: variable.niveau,
-    //   responsable: {
-    //     id: variable.responsableId.toString(),
-    //     nom: 'Mock',
-    //     prenom: 'User',
-    //     username: 'mock.user',
-    //     email: 'mock@example.com',
-    //     roles: [],
-    //     serviceLine: 'Mock Department',
-    //     actif: true,
-    //     createdAt: new Date().toISOString(),
-    //     updatedAt: new Date().toISOString()
-    //   },
-    //   planAction: {
-    //     id: variable.planActionId,
-    //     titre: 'Mock Plan',
-    //     description: 'Mock Description',
-    //     statut: 'EN_COURS' as any,
-    //     exercice: { id: 1, annee: 2025, verrouille: false }
-    //   },
-    //   progress: 0,
-    //   status: 'Not Started'
-    // };
-
-    // const currentVariables = this._variables.value;
-    // this._variables.next([newVariable, ...currentVariables]);
-
-    // return of(newVariable);
-
-    // Uncomment when backend is ready:
+    
     return this._httpClient.post<VariableAction>(`${environment.apiUrl}/variable-actions`, variable);
   }
 
   // Update variable
   updateVariable(id: number, variable: Partial<VariableAction>): Observable<VariableAction> {
-    // const currentVariables = this._variables.value;
-    // const index = currentVariables.findIndex(v => v.id === id);
     
-    // if (index > -1) {
-    //   const updatedVariable = { ...currentVariables[index], ...variable };
-    //   currentVariables[index] = updatedVariable;
-    //   this._variables.next([...currentVariables]);
-    //   this._selectedVariable.next(updatedVariable);
-    //   return of(updatedVariable);
-    // }
-
-    // throw new Error('Variable not found');
-
-    // Uncomment when backend is ready:
     return this._httpClient.put<VariableAction>(`${environment.apiUrl}/variable-actions/${id}`, variable);
   }
 

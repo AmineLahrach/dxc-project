@@ -47,7 +47,7 @@ export class AdminDashboardComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-        // this.loadDashboardData();
+        this.loadDashboardData();
     }
 
     loadDashboardData() {
