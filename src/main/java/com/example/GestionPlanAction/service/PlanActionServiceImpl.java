@@ -29,12 +29,14 @@ public class PlanActionServiceImpl implements PlanActionService {
 
 		List<Object[]> plans = repository.findAllplans();
 
+
 		List<PlanActionDTO> pdto = new ArrayList<>();
 		
-		List<VariableActionDTO> variableActions = new ArrayList<>();
 	
 	
 		for (Object[] plan : plans) {
+			List<VariableActionDTO> variableActions = new ArrayList<>();
+			
 			PlanActionDTO planActionDTO = new PlanActionDTO();
 			ResponsableDTO responsableDTO = new ResponsableDTO();
 			VariableActionDTO variableAction = new VariableActionDTO();
@@ -51,8 +53,7 @@ public class PlanActionServiceImpl implements PlanActionService {
 			variableAction.setResonableid(responsableDTO);
 			//variableAction.setNiveau((int) plan[6]);
 			responsableDTO.setId((Long) plan[9]);
-			variableActions.add(variableAction);
-			planActionDTO.setVariableActions(variableActions);
+
 			}
 
 			planActionDTO.setId((Long) plan[1]);
@@ -67,7 +68,8 @@ public class PlanActionServiceImpl implements PlanActionService {
 		//	exerciceDTO.setVerrouille((Integer) plan[6]);
 			//exerciceDTO.setId((Long) plan[7]);
 			
-			
+			variableActions.add(variableAction);
+			planActionDTO.setVariableActions(variableActions);
 		
 		
 			
