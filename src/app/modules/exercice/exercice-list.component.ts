@@ -68,22 +68,31 @@ export class ExerciceListComponent implements OnInit {
   }
 
   applyFilters(): void {
+    // Combine search and status into a JSON string
+    const filterValue = JSON.stringify({
+      search: this.searchControl.value || '',
+      status: this.statusFilter.value || 'all'
+    });
+
     this.dataSource.filterPredicate = (data: Exercice, filter: string) => {
+      const { search, status } = JSON.parse(filter);
+
+      // Search filter
       const searchStr = data.annee.toString().toLowerCase();
-      const searchMatch = searchStr.includes(filter.toLowerCase());
-      
+      const searchMatch = searchStr.includes(search.toLowerCase());
+
       // Status filter
       let statusMatch = true;
-      if (this.statusFilter.value === 'locked') {
+      if (status === 'locked') {
         statusMatch = data.verrouille === true;
-      } else if (this.statusFilter.value === 'unlocked') {
+      } else if (status === 'unlocked') {
         statusMatch = data.verrouille === false;
       }
-      
+
       return searchMatch && statusMatch;
     };
-    
-    this.dataSource.filter = this.searchControl.value || '';
+
+    this.dataSource.filter = filterValue;
   }
 
   createExercise(): void {
