@@ -167,11 +167,20 @@ public class DataInitializer implements CommandLineRunner {
             Exercice ex1 = exerciceRepository.findAll().get(0);
             Exercice ex2 = exerciceRepository.findAll().get(1);
 
+            // Get the admin user (or any user you want as creator)
+            User admin = userRepository.findAll().stream()
+                .filter(u -> u.getUsername().equals("admin"))
+                .findFirst()
+                .orElse(null);
+
+            Long adminId = (admin != null) ? admin.getId() : null;
+
             PlanAction pa1 = new PlanAction();
             pa1.setTitre("Improve IT Security");
             pa1.setDescription("Implement new security protocols.");
             pa1.setStatut(com.example.GestionPlanAction.enums.StatutPlanAction.EN_COURS_PLANIFICATION);
             pa1.setExercice(ex1);
+            pa1.setCreatedBy(adminId);
             planActionRepository.save(pa1);
 
             PlanAction pa2 = new PlanAction();
@@ -179,6 +188,7 @@ public class DataInitializer implements CommandLineRunner {
             pa2.setDescription("Automate invoice processing.");
             pa2.setStatut(com.example.GestionPlanAction.enums.StatutPlanAction.EN_COURS_PLANIFICATION);
             pa2.setExercice(ex2);
+            pa2.setCreatedBy(adminId); 
             planActionRepository.save(pa2);
 
             PlanAction pa3 = new PlanAction();
@@ -186,6 +196,7 @@ public class DataInitializer implements CommandLineRunner {
             pa3.setDescription("Launch employee training sessions.");
             pa3.setStatut(com.example.GestionPlanAction.enums.StatutPlanAction.EN_COURS_PLANIFICATION);
             pa3.setExercice(ex1);
+            pa3.setCreatedBy(adminId);
             planActionRepository.save(pa3);
 
             System.out.println("✅ PlanActions initialisés");

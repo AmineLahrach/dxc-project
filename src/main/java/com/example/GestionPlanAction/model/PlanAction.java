@@ -31,4 +31,6 @@ public class PlanAction {
     @OneToMany(mappedBy = "planAction", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<VariableAction> variableActions;
+
+    private Long createdBy; // User ID who created the plan
 }

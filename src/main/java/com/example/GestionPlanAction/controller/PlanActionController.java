@@ -1,5 +1,7 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.PlanActionByIdDto;
+import com.example.GestionPlanAction.dto.PlanActionResponse;
 import com.example.GestionPlanAction.dto.PlanStatusUpdateRequest;
 import com.example.GestionPlanAction.model.PlanAction;
 import com.example.GestionPlanAction.service.PlanActionService;
@@ -16,13 +18,13 @@ public class PlanActionController {
     private PlanActionService planActionService;
 
     @GetMapping
-    public List<PlanAction> getAll() {
-        return planActionService.getAll();
+    public List<PlanActionResponse> getAll() {
+        return planActionService.getAllWithCreatedByName();
     }
 
     @GetMapping("/{id}")
-    public PlanAction getById(@PathVariable Long id) {
-        return planActionService.getById(id);
+    public PlanActionByIdDto getById(@PathVariable Long id) {
+        return planActionService.getByIdWithDetails(id);
     }
 
     @PostMapping

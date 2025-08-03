@@ -1,11 +1,19 @@
 package com.example.GestionPlanAction.service;
 
+import com.example.GestionPlanAction.dto.PlanActionByIdDto;
+import com.example.GestionPlanAction.dto.PlanActionResponse;
 import com.example.GestionPlanAction.enums.StatutPlanAction;
 import com.example.GestionPlanAction.model.PlanAction;
+import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.model.VariableAction;
 import com.example.GestionPlanAction.repository.PlanActionRepository;
+import com.example.GestionPlanAction.repository.UserRepository;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.example.GestionPlanAction.security.SecurityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +23,12 @@ public class PlanActionServiceImpl implements PlanActionService {
 
     @Autowired
     private PlanActionRepository repository;
+    
+    @Autowired
+    private AuditService auditService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public List<PlanAction> getAll() {
@@ -28,16 +42,42 @@ public class PlanActionServiceImpl implements PlanActionService {
     }
 
     @Override
+    public PlanActionByIdDto getByIdWithDetails(Long id) {
+        PlanAction plan = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("PlanAction non trouvé"));
+        PlanActionByIdDto resp = new PlanActionByIdDto();
+        BeanUtils.copyProperties(plan, resp);
+        if (plan.getCreatedBy() != null) {
+            User user = userRepository.findById(plan.getCreatedBy()).orElse(null);
+            resp.setCreatedByName(user != null ? user.getNom() : null);
+        }
+        return resp;
+    }
+
+    @Override
     public PlanAction create(PlanAction planAction) {
         if (planAction.getStatut() == null) {
             planAction.setStatut(StatutPlanAction.EN_COURS_PLANIFICATION);
         }
+        // Set createdBy from security context
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        planAction.setCreatedBy(currentUserId);
+
         if (planAction.getVariableActions() != null) {
             for (var va : planAction.getVariableActions()) {
                 va.setPlanAction(planAction); // Set parent reference
             }
         }
-        return repository.save(planAction);
+        
+        PlanAction savedPlan = repository.save(planAction);
+        
+        // Log the creation action
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        if (currentUser != null) {
+            auditService.logPlanAction("created", currentUser, savedPlan, "Initial plan creation");
+        }
+        
+        return savedPlan;
     }
 
     @Override
@@ -91,12 +131,37 @@ public class PlanActionServiceImpl implements PlanActionService {
 
     public PlanAction updateStatus(Long id, String status) {
         PlanAction plan = getById(id);
+        String oldStatus = plan.getStatut().toString();
         plan.setStatut(StatutPlanAction.valueOf(status));
-        return repository.save(plan);
+        PlanAction updatedPlan = repository.save(plan);
+        
+        // Log the status change
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        if (currentUser != null) {
+            auditService.logStatusChange(currentUser, updatedPlan, oldStatus, status);
+        }
+        
+        return updatedPlan;
     }
 
     @Override
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    public List<PlanActionResponse> getAllWithCreatedByName() {
+        List<PlanAction> plans = repository.findAll();
+        List<PlanActionResponse> responses = new ArrayList<>();
+        for (PlanAction plan : plans) {
+            PlanActionResponse resp = new PlanActionResponse();
+            BeanUtils.copyProperties(plan, resp);
+            if (plan.getCreatedBy() != null) {
+                User user = userRepository.findById(plan.getCreatedBy()).orElse(null);
+                resp.setCreatedByName(user != null ? user.getNom() : null);
+            }
+            responses.add(resp);
+        }
+        return responses;
     }
 }
