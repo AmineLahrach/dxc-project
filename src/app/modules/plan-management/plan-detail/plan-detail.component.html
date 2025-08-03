@@ -31,7 +31,7 @@
                             [class]="getStatusColor(plan.statut)">
                             {{ getStatusLabel(plan.statut) }}
                         </span>
-                        <span class="text-secondary">Created by {{ plan?.createdBy || 'Unknown' }}</span>
+                        <span class="text-secondary">Created by {{ plan?.createdByName || 'Unknown' }}</span>
                         <span *ngIf="plan?.dueDate" class="text-secondary">Due {{ formatDate(plan.dueDate) }}</span>
                     </div>
                 </ng-container>
@@ -142,14 +142,14 @@
                     <div class="flex flex-col space-y-6">
                         <div>
                             <h4 class="text-sm font-medium text-secondary mb-2">Exercise</h4>
-                            <p class="text-base">{{ plan.exercice?.annee || 'N/A' }} - {{ plan.exercice?.description || 'N/A' }}</p>
+                            <p class="text-base">{{ plan.exercice?.annee || 'N/A' }}</p>
                         </div>
                         
-                        <div>
+                         <div>
                             <h4 class="text-sm font-medium text-secondary mb-2">Due Date</h4>
                             <p class="text-base">{{ formatDate(plan.dueDate) }}</p>
                         </div>
-                        
+                        <!--
                         <div>
                             <h4 class="text-sm font-medium text-secondary mb-2">Progress</h4>
                             <div class="flex items-center space-x-4">
@@ -165,11 +165,11 @@
                                     {{ plan.progress || 0 }}%
                                 </span>
                             </div>
-                        </div>
+                        </div> -->
                         
                         <div>
-                            <h4 class="text-sm font-medium text-secondary mb-2">Created</h4>
-                            <p class="text-base">{{ formatDate(plan.createdAt) }} by {{ plan.createdBy || 'Unknown' }}</p>
+                            <h4 class="text-sm font-medium text-secondary mb-2">Created By</h4>
+                            <p class="text-base">{{ plan.createdByName || 'Unknown' }}</p>
                         </div>
                     </div>
                 </div>
@@ -234,7 +234,8 @@
                                 <td class="py-4">
                                     <div class="flex items-center">
                                         <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-2">
-                                            {{ variable.responsable?.prenom.charAt(0) }}{{ variable.responsable?.nom.charAt(0) }}
+                                            {{ variable.responsable?.prenom ? variable.responsable.prenom.charAt(0) : '' }}
+                                            {{ variable.responsable?.nom ? variable.responsable.nom.charAt(0) : '' }}
                                         </div>
                                         <span class="text-sm">{{ variable.responsable?.prenom }} {{ variable.responsable?.nom }}</span>
                                     </div>

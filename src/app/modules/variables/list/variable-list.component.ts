@@ -250,7 +250,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
   canEdit(variable: VariableAction): boolean {
     return !variable.fige && (
       this._authService.isAdmin() || 
-      this.currentUser?.id === variable.responsable.id // Use currentUser here
+      this.currentUser?.id === variable.responsable?.id // Use currentUser here
     );
   }
 
