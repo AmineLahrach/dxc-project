@@ -8,11 +8,24 @@ export interface DashboardStats {
   activePlans: number;
   completedPlans: number;
   pendingApprovals: number;
-  recentPlans: PlanSummary[];
-  plansByStatus: { [key: string]: number };
-  plansByServiceLine: { [key: string]: number };
-  monthlyProgress: { month: string; completed: number; created: number }[];
-  userActivity: UserActivity[];
+  recentPlans: any[];
+  plansByStatus: any;
+  plansByServiceLine: any;
+  monthlyProgress: any[];
+  userActivity: any[];
+  totalUsers?: number;
+  totalServiceLines?: number;
+  activeExercises?: number;
+  recentAudits: {
+      date: string;
+      action: string;
+      details: string;
+      user: {
+          initials: string;
+          name: string;
+          id: number;
+      };
+  }[];
 }
 
 export interface PlanSummary {
@@ -32,6 +45,47 @@ export interface UserActivity {
   timestamp: string;
 }
 
+export interface CollaboratorDashboardStats {
+  plansByStatus?: any; 
+  plansByServiceLine?: any;
+  monthlyProgress?: any[];
+  userActivity?: UserActivity[];
+
+  myPlansInProgress: number;
+  myPlansCompleted: number;
+  myPlansPending: number;
+  myVariableActions: number;
+  totalPlans: number;
+  totalVariables: number;
+  recentAudits: {
+    date: string;
+    action: string;
+    details: string;
+    user: {
+      initials: string;
+      name: string;
+      id: number;
+    };
+  }[];
+}
+
+export interface DirectorDashboardStats {
+  pendingValidation: number;
+  completionRate: number;
+  activePlans: number;
+  totalExercises: number;
+  auditLogs: {
+    date: string;
+    action: string;
+    details: string;
+    user: {
+      initials: string;
+      name: string;
+      id: number;
+    };
+  }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -43,7 +97,15 @@ export class DashboardService {
     return this._httpClient.get<DashboardStats>(`${environment.apiUrl}/dashboard/admin/stats`);
   }
 
+  getDashboardStatsForCollaborator(): Observable<CollaboratorDashboardStats> {
+    return this._httpClient.get<CollaboratorDashboardStats>(`${environment.apiUrl}/dashboard/collaborator/stats`);
+  }
+
   getRecentActivities(): Observable<UserActivity[]> {
     return this._httpClient.get<UserActivity[]>(`${environment.apiUrl}/audit/recent`);
+  }
+
+  getDashboardStatsForDirector(): Observable<DirectorDashboardStats> {
+    return this._httpClient.get<DirectorDashboardStats>(`${environment.apiUrl}/dashboard/director/stats`);
   }
 }

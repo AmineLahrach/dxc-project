@@ -1,4 +1,37 @@
-<div class="container p-5">
+<div class="flex flex-col flex-auto min-w-0">
+    <!-- Header section -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <!-- <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Dashboard</span>
+                </div>
+            </div> -->
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Welcome back, {{ user?.nom ? user?.nom : 'No name' }}!
+                </h2>
+                <p class="text-secondary">Here's what's happening with your strategic plans today.</p>
+            </div>
+        </div>
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4">
+            <button
+                mat-flat-button
+                color="primary"
+                [routerLink]="['/user']">
+                <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                <span class="ml-2">Create User</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Loading spinner -->
     <div *ngIf="isLoading" class="flex justify-center my-6">
         <mat-spinner diameter="40"></mat-spinner>
@@ -10,66 +43,116 @@
     </div>
 
     <!-- Dashboard content (only shown when not loading and no errors) -->
-    <div *ngIf="!isLoading && !error">
+    <div *ngIf="!isLoading && !error" class="p-6">
         <!-- Stats cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <fuse-card class="p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-lg font-medium">Total Users</div>
-                        <div class="text-3xl font-bold mt-2">{{ stats.totalUsers }}</div>
+        <div class="grid w-full min-w-0 grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-5 mb-6">
+            <!-- Total Users Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                <div class="flex items-start justify-between">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">
+                        Total Users
                     </div>
-                    <mat-icon class="text-blue-500 text-3xl">people</mat-icon>
                 </div>
-            </fuse-card>
-
-            <fuse-card class="p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-lg font-medium">Total Plans</div>
-                        <div class="text-3xl font-bold mt-2">{{ stats.totalPlans }}</div>
+                <div class="mt-2 flex flex-col items-center">
+                    <div class="text-7xl font-bold leading-none tracking-tight text-blue-500 sm:text-8xl">
+                        {{ stats.totalUsers }}
                     </div>
-                    <mat-icon class="text-green-500 text-3xl">assignment</mat-icon>
-                </div>
-            </fuse-card>
-
-            <fuse-card class="p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-lg font-medium">Service Lines</div>
-                        <div class="text-3xl font-bold mt-2">{{ stats.totalServiceLines }}</div>
+                    <div class="text-lg font-medium text-blue-600 dark:text-blue-500">
+                        Users
                     </div>
-                    <mat-icon class="text-purple-500 text-3xl">business</mat-icon>
                 </div>
-            </fuse-card>
-
-            <fuse-card class="p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-lg font-medium">Active Exercises</div>
-                        <div class="text-3xl font-bold mt-2">{{ stats.activeExercises }}</div>
+            </div>           
+            <!-- Total Plans Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                <div class="flex items-start justify-between">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">
+                        Total Plans
                     </div>
-                    <mat-icon class="text-amber-500 text-3xl">fitness_center</mat-icon>
                 </div>
-            </fuse-card>
+                <div class="mt-2 flex flex-col items-center">
+                    <div class="text-7xl font-bold leading-none tracking-tight text-green-500 sm:text-8xl">
+                        {{ stats.totalPlans }}
+                    </div>
+                    <div class="text-lg font-medium text-green-600 dark:text-green-500">
+                        Plans
+                    </div>
+                </div>
+            </div>           
+            <!-- Active Exercises Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                <div class="flex items-start justify-between">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">
+                        Active Exercises
+                    </div>
+                </div>
+                <div class="mt-2 flex flex-col items-center">
+                    <div class="text-7xl font-bold leading-none tracking-tight text-amber-500 sm:text-8xl">
+                        {{ stats.activeExercises }}
+                    </div>
+                    <div class="text-lg font-medium text-amber-600 dark:text-amber-500">
+                        Exercises
+                    </div>
+                </div>
+            </div>
+             <!-- Service Lines Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                <div class="flex items-start justify-between">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">
+                        Service Lines
+                    </div>
+                </div>
+                <div class="mt-2 flex flex-col items-center">
+                    <div class="text-7xl font-bold leading-none tracking-tight text-purple-500 sm:text-8xl">
+                        {{ stats.totalServiceLines }}
+                    </div>
+                    <div class="text-lg font-medium text-purple-600 dark:text-purple-500">
+                        Service Lines
+                    </div>
+                </div>
+            </div>
+             <!-- Total Profils Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                <div class="flex items-start justify-between">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">
+                        Total Profils
+                    </div>
+                </div>
+                <div class="mt-2 flex flex-col items-center">
+                    <div class="text-7xl font-bold leading-none tracking-tight text-cyan-500 sm:text-8xl">
+                        {{ stats.totalProfils }}
+                    </div>
+                    <div class="text-lg font-medium text-cyan-600 dark:text-cyan-500">
+                        Profils
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Recent Activities -->
-        <fuse-card class="p-6">
+        <div class="bg-card rounded-2xl shadow p-6">
             <div class="text-xl font-bold mb-4">Recent Activities</div>
-            <div *ngIf="recentActivities.length === 0" class="text-gray-500 py-4 text-center">
-                <br/>No recent activities
+            <div *ngIf="!stats.recentAudits?.length" class="text-gray-500 py-4 text-center">
+                <br />No recent activities
             </div>
-            <div *ngFor="let activity of recentActivities" class="border-b py-3 last:border-b-0">
+            <div *ngFor="let audit of stats.recentAudits | slice:0:logsToShow" class="border-b py-3 last:border-b-0">
                 <div class="flex items-start">
-                    <mat-icon class="mr-3 text-blue-500">{{ activity.icon || 'info' }}</mat-icon>
+                    <div class="mr-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                            {{ audit.user.initials }}
+                        </div>
+                    </div>
                     <div>
-                        <div class="font-medium">{{ activity.title }}</div>
-                        <div class="text-sm text-gray-600">{{ activity.description }}</div>
-                        <div class="text-xs text-gray-500 mt-1">{{ activity.timestamp | date:'medium' }}</div>
+                        <div class="font-medium">{{ audit.user.name }}</div>
+                        <div class="text-sm text-gray-600">{{ audit.details }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ audit.date }}</div>
+                        <div class="text-xs text-blue-500 mt-1">{{ audit.action | titlecase }}</div>
                     </div>
                 </div>
             </div>
-        </fuse-card>
+            <div class="text-center mt-4">
+                <a *ngIf="stats.recentAudits?.length > logsToShow" class="text-blue-600 hover:underline cursor-pointer mr-4" (click)="viewAuditLogs()">Load More</a>
+                <a *ngIf="logsToShow > 4" class="text-red-600 hover:underline cursor-pointer" (click)="collapseAuditLogs()">Collapse</a>
+            </div>
+        </div>
     </div>
 </div>

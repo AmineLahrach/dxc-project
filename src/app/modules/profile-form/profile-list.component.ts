@@ -26,6 +26,10 @@ export class ProfileListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
+  // Add these properties
+  logsToShow = 4;
+  
+
   constructor(
     private profileService: ProfileService,
     private router: Router,
@@ -135,5 +139,14 @@ export class ProfileListComponent implements OnInit, AfterViewInit {
     if (this.profiles.paginator) {
       this.profiles.paginator.firstPage();
     }
+  }
+
+  // Add these methods
+  viewAuditLogs(): void {
+    this.logsToShow += 4;
+  }
+
+  collapseAuditLogs(): void {
+    this.logsToShow = 4;
   }
 }

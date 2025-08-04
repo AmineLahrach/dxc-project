@@ -25,6 +25,8 @@ export class ServiceLineListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
+  logsToShow = 4;
+
   constructor(
     private serviceLineService: ServiceLineService,
     private dialog: MatDialog,
@@ -134,5 +136,13 @@ export class ServiceLineListComponent implements OnInit, AfterViewInit {
     if (this.serviceLines.paginator) {
       this.serviceLines.paginator.firstPage();
     }
+  }
+
+  viewAuditLogs(): void {
+    this.logsToShow += 4;
+  }
+
+  collapseAuditLogs(): void {
+    this.logsToShow = 4;
   }
 }

@@ -12,6 +12,7 @@ export interface PlanAction {
   createdBy?: string;
   progress?: number;
   dueDate?: string;
+  auditLogs?: AuditLog[];
 }
 
 export interface VariableAction {
@@ -83,4 +84,15 @@ export interface VariableActionListRequest {
   responsableId?: number;
   responsableNom?: string;
   responsablePrenom?: string;
+}
+
+export interface AuditLog {
+    date: string;
+    action: string;
+    details: string;
+    user: {
+        initials: string;
+        name: string;
+        id: number;
+    };
 }

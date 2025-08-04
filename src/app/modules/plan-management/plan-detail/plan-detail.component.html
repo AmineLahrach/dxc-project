@@ -274,42 +274,47 @@
                     <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
                     <h3 class="text-lg font-semibold">History & Activities</h3>
                 </div>
-                
                 <div class="space-y-4">
-                    <div *ngIf="!plan.activities?.length" class="text-center py-8">
+                    <div *ngIf="!plan.auditLogs?.length" class="text-center py-8">
                         <div class="text-secondary">No activity history available</div>
                     </div>
-                    
-                    <!-- Example activity entries (you'll need to implement this with real data) -->
-                    <div class="flex space-x-4">
+                    <div *ngFor="let log of plan.auditLogs | slice:0:logsToShow" class="flex space-x-4">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                                JD
+                                {{ log.user.initials }}
                             </div>
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center space-x-2">
-                                <span class="font-medium">John Doe</span>
-                                <span class="text-secondary text-sm">created the plan</span>
-                                <span class="text-secondary text-xs">2 days ago</span>
+                                <span class="font-medium">{{ log.user.name }}</span>
+                                <span class="text-secondary text-sm">{{ log.action | titlecase }}</span>
+                                <span class="text-secondary text-xs">{{ log.date }}</span>
                             </div>
-                            <p class="text-sm mt-1">Initial plan creation</p>
+                            <p class="text-sm mt-1">
+                                <ng-container *ngIf="getVariableActionMatches(log.details).length > 0; else plainDetails">
+                                    <ng-container *ngFor="let part of getVariableActionMatches(log.details); let i = index">
+                                        <!-- Show text before the match -->
+                                        {{ log.details.substring(i === 0 ? 0 : getVariableActionMatches(log.details)[i-1].index + getVariableActionMatches(log.details)[i-1].desc.length + 13, part.index) }}
+                                        <br />
+                                        <!-- Show link for the match -->
+                                        <a 
+                                            class="text-blue-600 hover:underline cursor-pointer"
+                                            (click)="visitVariableAction(part.id)">
+                                            {{ part.desc }}
+                                        </a>
+                                    </ng-container>
+                                    <!-- Show text after the last match -->
+                                    {{ log.details.substring(getVariableActionMatches(log.details)[getVariableActionMatches(log.details).length-1].index + getVariableActionMatches(log.details)[getVariableActionMatches(log.details).length-1].desc.length + 13) }}
+                                </ng-container>
+                                <ng-template #plainDetails>
+                                    {{ log.details }}
+                                </ng-template>
+                            </p>
                         </div>
                     </div>
-                    <div class="flex space-x-4">
-                        <div class="flex-shrink-0">
-                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                                AS
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2">
-                                <span class="font-medium">Alice Smith</span>
-                                <span class="text-secondary text-sm">updated the status</span>
-                                <span class="text-secondary text-xs">1 day ago</span>
-                            </div>
-                            <p class="text-sm mt-1">Changed status from "Planning" to "In Progress"</p>
-                        </div>
+                    <div class="text-center mt-4">
+                        <a *ngIf="plan.auditLogs?.length > logsToShow" class="text-blue-600 hover:underline cursor-pointer mr-4" (click)="viewAuditLogs()">Load More</a>
+                        <a *ngIf="logsToShow > 4" class="text-red-600 hover:underline cursor-pointer" (click)="collapseAuditLogs()">Collapse</a>
                     </div>
                 </div>
             </div>

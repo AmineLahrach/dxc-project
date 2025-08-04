@@ -1,10 +1,12 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { DashboardService, DashboardStats } from '../dashboard-service';
+import { DashboardService, CollaboratorDashboardStats } from '../dashboard-service';
 import { AuthService } from 'app/core/auth/auth.service';
 import { ApexOptions } from 'ng-apexcharts';
 import { SharedModule } from 'app/modules/shared/shared.module';
 import { CommonModule } from '@angular/common';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
 
 @Component({
   selector: 'app-collaborator-dashboard',
@@ -12,9 +14,9 @@ import { CommonModule } from '@angular/common';
   templateUrl: './collaborator-dashboard.component.html'
 })
 export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
-  stats: DashboardStats;
+  stats: CollaboratorDashboardStats;
   loading = true;
-  
+  user: User;
   // Chart configurations
   chartPlansByStatus: ApexOptions;
   chartPlansByServiceLine: ApexOptions;
@@ -23,11 +25,17 @@ export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
   constructor(
+    private _userService: UserService,
     private _dashboardService: DashboardService,
     private _authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this._userService.user$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((user: User) => {
+                this.user = user;
+            });
     this.loadDashboardData();
   }
 
@@ -37,12 +45,11 @@ export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
   }
 
   loadDashboardData(): void {
-    this._dashboardService.getDashboardStats()
+    this._dashboardService.getDashboardStatsForCollaborator()
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe({
         next: (stats) => {
           this.stats = stats;
-          this.prepareCharts();
           this.loading = false;
         },
         error: () => {
@@ -58,7 +65,7 @@ export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
         type: 'pie',
         height: 300
       },
-      series: Object.values(this.stats.plansByStatus),
+      series: Object.values(this.stats.plansByStatus).map(v => typeof v === 'number' ? v : 0), // Ensure only numbers
       labels: Object.keys(this.stats.plansByStatus),
       colors: ['#2563eb', '#059669', '#dc2626', '#d97706'],
       legend: {
@@ -86,7 +93,7 @@ export class CollaboratorDashboardComponent implements OnInit, OnDestroy {
       },
       series: [{
         name: 'Plans',
-        data: Object.values(this.stats.plansByServiceLine)
+        data: Object.values(this.stats.plansByServiceLine).map(v => typeof v === 'number' ? v : 0)
       }],
       xaxis: {
         categories: Object.keys(this.stats.plansByServiceLine)

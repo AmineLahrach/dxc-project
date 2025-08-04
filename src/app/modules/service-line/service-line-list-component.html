@@ -57,6 +57,42 @@
             </div>
         </div>
 
+        <!-- Activity Logs -->
+        <div class="bg-card rounded-2xl shadow p-6 mt-8" *ngIf="isEditing && selectedServiceLine">
+            <div class="flex items-center mb-6">
+                <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+                <h3 class="text-lg font-semibold">History & Activities</h3>
+            </div>
+            <div class="space-y-4">
+                <div *ngIf="!selectedServiceLine?.auditLogs?.length" class="text-center py-8">
+                    <div class="text-secondary">No activity history available</div>
+                </div>
+                <div *ngFor="let log of selectedServiceLine?.auditLogs | slice:0:logsToShow" class="flex space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                            {{ log.user.initials }}
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium">{{ log.user.name }}</span>
+                            <span class="text-secondary text-sm">{{ log.action | titlecase }}</span>
+                            <span class="text-secondary text-xs">{{ log.date }}</span>
+                        </div>
+                        <p class="text-sm mt-1">{{ log.details }}</p>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a *ngIf="selectedServiceLine?.auditLogs?.length > logsToShow" 
+                       class="text-blue-600 hover:underline cursor-pointer mr-4" 
+                       (click)="viewAuditLogs()">Load More</a>
+                    <a *ngIf="logsToShow > 4" 
+                       class="text-red-600 hover:underline cursor-pointer" 
+                       (click)="collapseAuditLogs()">Collapse</a>
+                </div>
+            </div>
+        </div>
+
         <!-- Search and filters -->
         <div class="mb-8" *ngIf="!selectedServiceLine">
             <mat-form-field class="w-full sm:w-80">

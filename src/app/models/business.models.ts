@@ -1,4 +1,5 @@
 import { User } from "./auth.models";
+import { AuditLog } from "./plan.models";
 
 export interface PlanAction {
   id?: number;
@@ -8,6 +9,17 @@ export interface PlanAction {
   exercice: Exercise;
   variableActions?: VariableAction[];
 }
+
+// export interface AuditLog {
+//   date: string;
+//   action: string;
+//   details: string;
+//   user: {
+//     initials: string;
+//     name: string;
+//     id: number;
+//   };
+// }
 
 export interface VariableAction {
   id?: number;
@@ -21,6 +33,9 @@ export interface VariableAction {
   status?: string;
   responsable: User;
   planAction: PlanAction;
+  auditLogs?: AuditLog[];
+  responsableId?: number; // <-- Add this for form binding
+  planActionId?: number; // <-- Add this for form binding
 }
 
 export interface Exercise {
@@ -33,11 +48,31 @@ export interface ServiceLine {
   id?: number;
   nom: string;
   // description?: string;  
+  auditLogs?: Array<{
+      date: string;
+      action: string;
+      details: string;
+      user: {
+          initials: string;
+          name: string;
+          id: number;
+      };
+  }>;
 }
 
 export interface Profile {
   id?: number;
   nom: string;
+  auditLogs?: Array<{
+      date: string;
+      action: string;
+      details: string;
+      user: {
+          initials: string;
+          name: string;
+          id: number;
+      };
+  }>;
 }
 
 export enum ActionPlanStatus {

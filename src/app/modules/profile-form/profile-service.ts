@@ -13,7 +13,7 @@ export class ProfileService {
   constructor(private http: HttpClient) {}
 
   getProfiles(): Observable<Profile[]> {
-    return this.http.get<Profile[]>(this.apiUrl)
+    return this.http.get<Profile[]>(`${this.apiUrl}/with-audits`)
       .pipe(catchError(this.handleError));
   }
 

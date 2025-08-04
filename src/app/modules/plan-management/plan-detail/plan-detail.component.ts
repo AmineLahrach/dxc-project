@@ -66,6 +66,8 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
 
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
+  logsToShow = 3;
+
   constructor(
     private _formBuilder: FormBuilder,
     private _planService: PlanService,
@@ -176,7 +178,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
   get variableActions(): FormArray {
     return this.planForm.get('variableActions') as FormArray;
   }
-
+  
   private createVariableFormGroup(variable?: any): FormGroup {
     return this._formBuilder.group({
       id: [variable?.id || null],
@@ -196,8 +198,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
   removeVariableAction(index: number): void {
     this.variableActions.removeAt(index);
   }
-
-  // Form submission
+  
   onSubmit(): void {
     if (this.planForm.invalid) {
       this.markFormGroupTouched();
@@ -213,9 +214,9 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       this.createPlan(formValue);
     }
   }
-
+  
   private updatePlan(formValue: any): void {
-   const updateData: PlanActionCreateRequest = {
+    const updateData: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
       statut: this.plan?.statut || ActionPlanStatus.PLANNING,
@@ -246,7 +247,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
         }
       });
   }
-
+  
   private createPlan(formValue: any): void {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
@@ -277,8 +278,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
         }
       });
   }
-
-  // Form validation helpers
+  
   private markFormGroupTouched(): void {
     Object.keys(this.planForm.controls).forEach(key => {
       const control = this.planForm.get(key);
@@ -295,7 +295,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       }
     });
   }
-
+  
   getFieldError(fieldName: string): string {
     const control = this.planForm.get(fieldName);
     if (control?.errors && control.touched) {
@@ -306,8 +306,8 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       if (control.errors['max']) return `Value too high`;
     }
     return '';
-  }
-
+  } 
+  
   getVariableFieldError(index: number, fieldName: string): string {
     const control = this.variableActions.at(index).get(fieldName);
     if (control?.errors && control.touched) {
@@ -318,30 +318,29 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     }
     return '';
   }
-
-  // Utility methods
+  
   getUserName(userId: number | string): string {
     const user = this.users.find(u => u.id === userId.toString());
     return user ? `${user.prenom} ${user.nom}` : 'Unknown User';
   }
-
+  
   getTotalWeight(): number {
-    return this.variableActions.controls.reduce((total, control) => {
+      return this.variableActions.controls.reduce((total, control) => {
       return total + (control.get('poids')?.value || 0);
     }, 0);
   }
-
+  
   isWeightValid(): boolean {
     const total = this.getTotalWeight();
     return Math.abs(total - 1.0) < 0.01; // Allow small floating point differences
   }
-
+  
   getProgressColor(progress: number): string {
     if (progress >= 80) return 'text-green-600';
     if (progress >= 50) return 'text-yellow-600';
     return 'text-red-600';
   }
-
+  
   getStatusColor(status: ActionPlanStatus): string {
     switch (status) {
       case ActionPlanStatus.PLANNING: return 'text-blue-600 bg-blue-100';
@@ -351,7 +350,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       default: return 'text-gray-600 bg-gray-100';
     }
   }
-
+  
   getStatusLabel(status: ActionPlanStatus): string {
     switch (status) {
       case ActionPlanStatus.PLANNING: return 'Planning';
@@ -361,17 +360,16 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       default: return status;
     }
   }
-
+  
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   }
-
-  // Navigation methods
+  
   goBack(): void {
     this._router.navigate(['/plans']);
   }
-
+  
   cancelEdit(): void {
     this.isEditMode = false;
     // Reload plan data to refresh any changes
@@ -379,8 +377,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
       this.loadPlanData(this.plan.id);
     }
   }
-
-  // Plan actions
+  
   deletePlan(): void {
     if (!this.plan?.id) return;
 
@@ -398,10 +395,10 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
         });
     }
   }
-
-  // Update plan status
+  
   updateStatus(status: ActionPlanStatus): void {
     if (!this.plan?.id) return;
+    if (this.plan.statut === status) return; // Prevent duplicate update
 
     this._planService.updatePlanStatus(this.plan.id, status)
       .pipe(takeUntil(this._unsubscribeAll))
@@ -414,5 +411,30 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
           this._snackBar.open('Failed to update plan status', 'Close', { duration: 3000 });
         }
       });
+  }
+
+  viewAuditLogs() {
+    if (this.plan?.auditLogs?.length > this.logsToShow) {
+      this.logsToShow += 4;
+    }
+  }
+
+  collapseAuditLogs() {
+    this.logsToShow = 3;
+  }
+
+  visitVariableAction(variableActionId: string) {
+    // Navigate to the VariableAction edit page (adjust route as needed)
+    this._router.navigate(['/variable-actions', variableActionId, 'audit-logs']);
+  }
+
+  getVariableActionMatches(details: string): Array<{id: string, desc: string, index: number}> {
+    const regex = /\[id=(\d+), desc="([^\"]+)"\]/g;
+    const matches: Array<{id: string, desc: string, index: number}> = [];
+    let match;
+    while ((match = regex.exec(details)) !== null) {
+        matches.push({ id: match[1], desc: match[2], index: match.index });
+    }
+    return matches;
   }
 }

@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
-import { ExerciceService, Exercice } from './exercice.service';
+import { ExerciceService, Exercice, AuditLog } from './exercice.service';
 import { SharedModule } from '../shared/shared.module';
 
 @Component({
@@ -18,9 +18,11 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
   exerciseId: number | null = null;
   loading = false;
   currentYear = new Date().getFullYear();
+  auditLogs: AuditLog[] = [];
+  logsToShow = 4;
 
   private _unsubscribeAll: Subject<any> = new Subject<any>();
-
+  
   constructor(
     private fb: FormBuilder,
     private _exerciceService: ExerciceService,
@@ -41,12 +43,12 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.checkRouteParams();
   }
-
+  
   ngOnDestroy(): void {
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
   }
-
+  
   private checkRouteParams(): void {
     this._route.params
       .pipe(takeUntil(this._unsubscribeAll))
@@ -58,7 +60,7 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
         }
       });
   }
-
+  
   private loadExerciceData(): void {
     if (!this.exerciseId) return;
 
@@ -72,17 +74,17 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
             annee: exercice.annee,
             verrouille: exercice.verrouille
           });
+          this.auditLogs = exercice.auditLogs ?? [];
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading exercice:', error);
           this.loading = false;
           this._snackBar.open('Failed to load exercise data', 'Close', { duration: 3000 });
           this._router.navigate(['/exercices']);
         }
       });
   }
-
+  
   onSubmit(): void {
     if (this.exerciceForm.invalid) {
       this.exerciceForm.markAllAsTouched();
@@ -137,8 +139,18 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
     }
     return '';
   }
-
+  
   cancel(): void {
     this._router.navigate(['/exercises']);
+  }
+  
+  viewAuditLogs() {
+    if (this.auditLogs.length > this.logsToShow) {
+      this.logsToShow += 4;
+    }
+  }
+
+  collapseAuditLogs() {
+    this.logsToShow = 4;
   }
 }

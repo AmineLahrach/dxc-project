@@ -271,7 +271,7 @@ export class AuthService {
      */
     isDirector(): boolean {
         const user = this.getCurrentUserFromStorage() || this._currentUser.value;
-        return !!user && Array.isArray(user.roles) && user.roles.includes('DIRECTOR');
+        return !!user && Array.isArray(user.roles) && user.roles.includes('DIRECTEUR_GENERAL');
     }
 
     /**

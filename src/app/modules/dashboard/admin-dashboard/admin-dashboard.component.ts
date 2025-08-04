@@ -1,21 +1,25 @@
 import { Component, OnInit } from "@angular/core";
-import { FuseCardComponent } from "@fuse/components/card";
-import { MatIcon } from "@angular/material/icon";
 import { SharedModule } from "app/modules/shared/shared.module";
 import { DashboardService, DashboardStats } from '../dashboard-service';
-import { finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin, Subject, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
+import { UserService } from "app/core/user/user.service";
+import { User } from "app/core/user/user.types";
 
 @Component({
     selector: 'app-admin-dashboard',
     templateUrl: './admin-dashboard.component.html',
-    imports: [SharedModule, FuseCardComponent],
+    imports: [SharedModule],
     standalone: true
 })
 export class AdminDashboardComponent implements OnInit {
+    logsToShow = 3;
+    user: User;
 
     viewAuditLogs() {
-        throw new Error('Method not implemented.');
+        if (this.stats.recentAudits?.length > this.logsToShow) {
+            this.logsToShow += 4;
+        }
     }
     
     manageProfiles() {
@@ -28,25 +32,34 @@ export class AdminDashboardComponent implements OnInit {
     
     stats: DashboardStats = {
        totalPlans: 0,
-         activePlans: 0,
+        activePlans: 0,
         completedPlans: 0,
         pendingApprovals: 0,
         recentPlans: [],
         plansByStatus: {},
         plansByServiceLine: {},
         monthlyProgress: [],
-        userActivity: []
+        userActivity: [],
+        recentAudits: [] 
     };
+
     recentActivities: any[] = [];
     isLoading: boolean = false;
     error: string | null = null;
-
+    
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
     constructor(
+        private _userService: UserService,
         private dashboardService: DashboardService,
         private router: Router
     ) {}
-
+    
     ngOnInit() {
+        this._userService.user$
+                    .pipe(takeUntil(this._unsubscribeAll))
+                    .subscribe((user: User) => {
+                        this.user = user;
+                    });
         this.loadDashboardData();
     }
 
@@ -74,5 +87,9 @@ export class AdminDashboardComponent implements OnInit {
 
     navigateToUsers() {
         this.router.navigate(['/user-management']);
+    }
+
+    collapseAuditLogs() {
+        this.logsToShow = 3;
     }
 }

@@ -14,7 +14,7 @@ export class ServiceLineService {
   constructor(private http: HttpClient) {}
 
   getServiceLines(): Observable<ServiceLine[]> {
-    return this.http.get<ServiceLine[]>(this.apiUrl)
+    return this.http.get<ServiceLine[]>(`${this.apiUrl}/with-audits`)
       .pipe(catchError(this.handleError));
   }
 

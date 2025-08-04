@@ -4,10 +4,22 @@ import { Observable, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { catchError, map } from 'rxjs/operators';
 
+export interface AuditLog {
+  date: string;
+  action: string;
+  details: string;
+  user: {
+    initials: string;
+    name: string;
+    id: number;
+  };
+}
+
 export interface Exercice {
   id: number;
   annee: number;
   verrouille: boolean;
+  auditLogs?: AuditLog[];
 }
 
 @Injectable({

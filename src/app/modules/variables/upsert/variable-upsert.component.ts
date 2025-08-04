@@ -22,6 +22,8 @@ export class VariableUpsertComponent implements OnInit {
   isEditMode: boolean = false;
   users: User[] = [];
   plans: PlanAction[] = []; // <-- Add this
+  auditLogs: any[] = [];
+  logsToShow = 4;
 
   levelOptions = [
     { value: 1, label: 'Level 1 (Primary)' },
@@ -65,7 +67,14 @@ export class VariableUpsertComponent implements OnInit {
   loadVariable(id: number): void {
     this.variableService.getVariableByIdForEdit(id).subscribe(variable => {
       this.variable = variable;
-      this.variableForm.patchValue(variable);
+      this.variableForm.patchValue({
+        description: variable.description,
+        poids: variable.poids,
+        niveau: variable.niveau,
+        responsable_id: variable.responsableId, // <-- use correct property
+        plan_action_id: variable.planActionId   // <-- use correct property
+      });
+      this.auditLogs = variable.auditLogs ?? [];
     });
   }
 
@@ -89,6 +98,16 @@ export class VariableUpsertComponent implements OnInit {
         });
       }
     }
+  }
+
+  viewAuditLogs() {
+    if (this.auditLogs.length > this.logsToShow) {
+      this.logsToShow += 4;
+    }
+  }
+
+  collapseAuditLogs() {
+    this.logsToShow = 4;
   }
 
   get formControls() {

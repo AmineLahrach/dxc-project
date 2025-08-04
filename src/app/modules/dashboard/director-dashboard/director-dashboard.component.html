@@ -1,1 +1,121 @@
-<p>statistics works!</p>
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Director Dashboard</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Welcome {{ user?.nom ? user?.nom : 'No name' }}!
+                </h2>
+                <p class="text-secondary">Overview of your strategic plans and activities.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Loading state -->
+        <div *ngIf="loading" class="flex justify-center items-center h-64">
+            <mat-spinner diameter="48"></mat-spinner>
+        </div>
+
+        <!-- Dashboard content -->
+        <div *ngIf="!loading && stats" class="space-y-8">
+
+            <!-- Stats cards -->
+            <div class="grid w-full min-w-0 grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 mb-6">
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Total Plans</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-cyan-500 sm:text-8xl">
+                            {{ stats.totalPlans }}
+                        </div>
+                        <div class="text-lg font-medium text-cyan-600 dark:text-cyan-500">Plans</div>
+                    </div>
+                </div>
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Total Variables</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-purple-500 sm:text-8xl">
+                            {{ stats.totalVariables }}
+                        </div>
+                        <div class="text-lg font-medium text-purple-600 dark:text-purple-500">Variables</div>
+                    </div>
+                </div>
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Planning Variables</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-blue-500 sm:text-8xl">
+                            {{ stats.planningVariables }}
+                        </div>
+                        <div class="text-lg font-medium text-blue-600 dark:text-blue-500">Planning</div>
+                    </div>
+                </div>
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Locked Variables</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-red-500 sm:text-8xl">
+                            {{ stats.lockedVariables }}
+                        </div>
+                        <div class="text-lg font-medium text-red-600 dark:text-red-500">Locked</div>
+                    </div>
+                </div>
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Monitoring Variables</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-orange-500 sm:text-8xl">
+                            {{ stats.monitoringVariables }}
+                        </div>
+                        <div class="text-lg font-medium text-orange-600 dark:text-orange-500">Monitoring</div>
+                    </div>
+                </div>                                
+                <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+                    <div class="truncate text-lg font-medium leading-6 tracking-tight">Completion Rate</div>
+                    <div class="mt-2 flex flex-col items-center">
+                        <div class="text-7xl font-bold leading-none tracking-tight text-green-500 sm:text-8xl">
+                            {{ stats.completionRate }}%
+                        </div>
+                        <div class="text-lg font-medium text-green-600 dark:text-green-500">Completion</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent History Section -->
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="text-xl font-bold mb-4">Recent History</div>
+                <div *ngIf="!stats.auditLogs?.length" class="text-gray-500 py-4 text-center">
+                    No recent activities
+                </div>
+                <div *ngFor="let audit of stats.auditLogs | slice:0:logsToShow" class="border-b py-3 last:border-b-0">
+                    <div class="flex items-start">
+                        <div class="mr-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                                {{ audit.user.initials }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium">{{ audit.user.name }}</div>
+                            <div class="text-sm text-gray-600">{{ audit.details }}</div>
+                            <div class="text-xs text-gray-500 mt-1">{{ audit.date }}</div>
+                            <div class="text-xs text-blue-500 mt-1">{{ audit.action | titlecase }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a *ngIf="stats.auditLogs?.length > logsToShow" class="text-blue-600 hover:underline cursor-pointer mr-4" (click)="viewAuditLogs()">Load More</a>
+                    <a *ngIf="logsToShow > 4" class="text-red-600 hover:underline cursor-pointer" (click)="collapseAuditLogs()">Collapse</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

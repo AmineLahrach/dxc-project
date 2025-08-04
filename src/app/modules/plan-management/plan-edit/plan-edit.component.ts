@@ -229,7 +229,7 @@ export class PlanEditComponent implements OnInit, OnDestroy {
         next: (plan) => {
           this.loading = false;
           this._snackBar.open('Plan updated successfully!', 'Close', { duration: 3000 });
-          this._router.navigate(['/plans', plan.id]);
+          this._router.navigate(['/plans']);
         },
         error: () => {
           this.loading = false;
