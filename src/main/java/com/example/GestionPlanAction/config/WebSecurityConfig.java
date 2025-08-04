@@ -76,8 +76,7 @@ public class WebSecurityConfig {
                     
                     // Admin only endpoints
                     .requestMatchers("/api/profils/**").hasRole("ADMINISTRATEUR")
-                    .requestMatchers("/api/audit/**").hasRole("ADMINISTRATEUR")
-                    .requestMatchers("/api/users/**").hasRole("ADMINISTRATEUR")
+                    .requestMatchers("/api/audit/**").hasRole("ADMINISTRATEUR")                    
                     .requestMatchers("/api/servicelines/**").hasRole("ADMINISTRATEUR")
 
                     // Director endpoints
@@ -86,6 +85,7 @@ public class WebSecurityConfig {
                     .requestMatchers("/api/analytics/**").hasAnyRole("ADMINISTRATEUR", "DIRECTEUR_GENERAL")
                     
                     // Collaborator and above endpoints
+                    .requestMatchers("/api/users/**").hasAnyRole("ADMINISTRATEUR", "DIRECTEUR_GENERAL", "COLLABORATEUR")
                     .requestMatchers("/api/plans/**").hasAnyRole("ADMINISTRATEUR", "DIRECTEUR_GENERAL", "COLLABORATEUR")
                     .requestMatchers("/api/variable-actions/**").hasAnyRole("ADMINISTRATEUR", "DIRECTEUR_GENERAL", "COLLABORATEUR")
                     

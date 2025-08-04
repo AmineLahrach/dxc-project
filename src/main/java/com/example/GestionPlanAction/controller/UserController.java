@@ -54,15 +54,9 @@ public class UserController {
 
     @PutMapping("/{id}")
     public UserResponseDTO update(@PathVariable Long id, @RequestBody UserProfileDTO dto) {
-        // User existingUser = service.findEntityById(id);
-        // if (dto.motDePasse != null && !dto.motDePasse.equals(existingUser.getMotDePasse())) {
-        //     existingUser.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
-        // }
-        // existingUser.setNom(dto.nom);
-        // existingUser.setPrenom(dto.prenom);
-        // existingUser.setEmail(dto.email);
-        // existingUser.setUsername(dto.username);
-        // existingUser.setActif(dto.actif != null ? dto.actif : existingUser.getActif());
+        if (dto.motDePasse != null && !dto.motDePasse.isEmpty()) {
+            dto.motDePasse = new BCryptPasswordEncoder().encode(dto.motDePasse);
+        }
         return service.updateWithRelations(id, dto);
     }
 

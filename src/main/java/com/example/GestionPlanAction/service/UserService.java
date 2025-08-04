@@ -20,4 +20,5 @@ public interface UserService {
     UserResponseDTO updateUserStatus(Long id, Boolean actif);
     List<UserWithProfilesDTO> getAllUsersWithProfiles();
     User findEntityById(Long id);
+    String getUserFullNameById(Long id);
 }

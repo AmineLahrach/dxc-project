@@ -1,8 +1,10 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.ProfilResponseDTO;
 import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.service.ProfilService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,8 @@ public class ProfilController {
     }
 
     @GetMapping("/{id}")
-    public Profil getById(@PathVariable Long id) {
-        return profilService.getProfilById(id)
-                .orElseThrow(() -> new RuntimeException("Profil introuvable"));
+    public ProfilResponseDTO getById(@PathVariable Long id) {
+        return profilService.getProfilWithAudits(id);
     }
 
     @PostMapping
@@ -39,5 +40,11 @@ public class ProfilController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         profilService.deleteProfil(id);
+    }
+
+    @GetMapping("/with-audits")
+    public ResponseEntity<List<ProfilResponseDTO>> getAllProfilsWithAudits() {
+        List<ProfilResponseDTO> profils = profilService.getAllProfilsListWithAudits();
+        return ResponseEntity.ok(profils);
     }
 }

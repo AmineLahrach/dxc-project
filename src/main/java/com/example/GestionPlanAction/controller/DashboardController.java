@@ -19,14 +19,14 @@ public class DashboardController {
 
     @GetMapping("/admin/stats")
     @PreAuthorize("hasRole('ADMINISTRATEUR')")
-    public AdminDashboardStats getAdminStats() {
+    public AdminDashboardStats PlanActionByIdDto() {
         return dashboardService.getAdminStats();
     }
 
-    @GetMapping("/collaborator/stats/{userId}")
-    @PreAuthorize("hasRole('COLLABORATOR') or hasRole('ADMINISTRATOR')")
-    public CollaboratorDashboardStats getCollaboratorStats(@PathVariable Long userId) {
-        return dashboardService.getCollaboratorStats(userId);
+    @GetMapping("/collaborator/stats")
+    @PreAuthorize("hasRole('ROLE_COLLABORATEUR')")
+    public CollaboratorDashboardStats getCollaboratorStats() {
+        return dashboardService.getCollaboratorStats();
     }
 
     @GetMapping("/director/stats")

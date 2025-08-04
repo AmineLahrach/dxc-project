@@ -29,4 +29,8 @@ public interface AuditRepository extends JpaRepository<Audit, Long> {
     
     @Query("SELECT COUNT(a) FROM Audit a WHERE a.utilisateur = :user AND a.date >= :since")
     Long countUserActionsAfter(@Param("user") User user, @Param("since") LocalDateTime since);
+
+    List<Audit> findTop10ByOrderByDateDesc();
+
+    List<Audit> findTop10ByUtilisateurIdOrderByDateDesc(Long utilisateurId);
 }

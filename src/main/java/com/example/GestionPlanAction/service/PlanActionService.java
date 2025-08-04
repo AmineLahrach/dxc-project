@@ -10,9 +10,10 @@ public interface PlanActionService {
     List<PlanAction> getAll();
     PlanAction getById(Long id);
     PlanAction create(PlanAction planAction);
-    PlanAction update(Long id, PlanAction updated);
-    PlanAction updateStatus(Long id, String status);
+    PlanActionByIdDto update(Long id, PlanAction updated);
+    PlanActionByIdDto updateStatus(Long id, String status);
     void delete(Long id);
     List<PlanActionResponse> getAllWithCreatedByName();
     PlanActionByIdDto getByIdWithDetails(Long id);
+    String getPlanActionTitleById(Long id);
 }

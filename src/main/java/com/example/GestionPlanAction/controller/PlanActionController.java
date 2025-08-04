@@ -33,7 +33,7 @@ public class PlanActionController {
     }
 
     @PutMapping("/{id}")
-    public PlanAction update(@PathVariable Long id, @RequestBody PlanAction planAction) {
+    public PlanActionByIdDto update(@PathVariable Long id, @RequestBody PlanAction planAction) {
         return planActionService.update(id, planAction);
     }
 
@@ -43,7 +43,7 @@ public class PlanActionController {
     }
 
     @PatchMapping("/{id}/status")
-    public PlanAction updateStatus(@PathVariable Long id, @RequestBody PlanStatusUpdateRequest request) {
+    public PlanActionByIdDto updateStatus(@PathVariable Long id, @RequestBody PlanStatusUpdateRequest request) {
         return planActionService.updateStatus(id, request.getStatus());
     }
 }

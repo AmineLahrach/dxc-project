@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface PlanActionRepository extends JpaRepository<PlanAction, Long> {
@@ -17,6 +18,9 @@ public interface PlanActionRepository extends JpaRepository<PlanAction, Long> {
     
     @Query("SELECT p FROM PlanAction p JOIN p.variableActions va WHERE va.responsable.id = :userId")
     List<PlanAction> findByVariableActionsResponsableId(Long userId);
+    
+    @Query("SELECT COUNT(DISTINCT p) FROM PlanAction p JOIN p.variableActions va WHERE va.responsable.id = :userId")
+    long countByVariableActionsResponsableId(@Param("userId") Long userId);
     
     @Query("SELECT sl.nom, COUNT(p), AVG(CASE WHEN p.statut = 'VERROUILLE' THEN 100 ELSE 0 END) " +
            "FROM PlanAction p JOIN p.variableActions va JOIN va.responsable.serviceLine sl " +

@@ -5,6 +5,7 @@ import com.example.GestionPlanAction.model.Exercice;
 import com.example.GestionPlanAction.model.VariableAction;
 
 import java.util.List;
+import java.util.Map;
 
 public class PlanActionByIdDto {
     private Long id;
@@ -15,6 +16,7 @@ public class PlanActionByIdDto {
     private Long createdBy;
     private String createdByName; // Optional, if you want to include the name
     private List<VariableAction> variableActions;
+    private List<Map<String, Object>> auditLogs; // Added field for audit logs
 
     // Getters and setters
     public Long getId() { return id; }
@@ -40,4 +42,7 @@ public class PlanActionByIdDto {
 
     public List<VariableAction> getVariableActions() { return variableActions; }
     public void setVariableActions(List<VariableAction> variableActions) { this.variableActions = variableActions; }
+
+    public List<Map<String, Object>> getAuditLogs() { return auditLogs; }
+    public void setAuditLogs(List<Map<String, Object>> auditLogs) { this.auditLogs = auditLogs; }
 }

@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.ExerciceResponseDTO;
 import com.example.GestionPlanAction.model.Exercice;
 import com.example.GestionPlanAction.service.ExerciceService;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class ExerciceController {
     }
 
     @GetMapping("/{id}")
-    public Exercice getById(@PathVariable Long id) {
+    public ExerciceResponseDTO getById(@PathVariable Long id) {
         return service.getById(id);
     }
 

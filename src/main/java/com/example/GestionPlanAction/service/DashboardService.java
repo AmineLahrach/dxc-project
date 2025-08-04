@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface DashboardService {
     AdminDashboardStats getAdminStats();
-    CollaboratorDashboardStats getCollaboratorStats(Long userId);
+    CollaboratorDashboardStats getCollaboratorStats();
     DirectorDashboardStats getDirectorStats();
     List<PlanAction> getPendingValidations();
     List<PlanAction> getUserPlans(Long userId);

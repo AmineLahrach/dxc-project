@@ -10,4 +10,6 @@ public interface VariableActionRepository extends JpaRepository<VariableAction, 
     
     @Query("SELECT COUNT(va) FROM VariableAction va WHERE va.responsable.id = :userId AND va.planAction.statut = :statut")
     long countByResponsableIdAndPlanActionStatut(Long userId, StatutPlanAction statut);
+    
+    long countByPlanActionStatut(StatutPlanAction statut);
 }

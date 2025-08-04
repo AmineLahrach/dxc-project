@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,14 @@ import com.example.GestionPlanAction.dto.ServiceLineDTO;
 import com.example.GestionPlanAction.dto.UserProfileDTO;
 import com.example.GestionPlanAction.dto.UserResponseDTO;
 import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
+import com.example.GestionPlanAction.model.Audit;
 import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.model.ServiceLine;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.repository.ProfilRepository;
 import com.example.GestionPlanAction.repository.ServiceLineRepository;
 import com.example.GestionPlanAction.repository.UserRepository;
+import com.example.GestionPlanAction.security.SecurityUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -38,6 +39,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private ProfilRepository profilRepository;
 
+	@Autowired
+	private AuditService auditService; // Inject AuditService
+
 	@Override
 	public List<UserResponseDTO> getAll() {
 		return repository.findAll() // ← use fetch-join
@@ -48,7 +52,14 @@ public class UserServiceImpl implements UserService {
 	public UserResponseDTO getById(Long id) {
 		User u = repository.findByIdWithProfiles(id) // ← already fetches profils+serviceLine
 				.orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID: " + id));
-		return convertToResponseDTO(u);
+		
+		UserResponseDTO dto = convertToResponseDTO(u);
+		
+		// Add audit logs for this user
+		List<Audit> audits = auditService.getAuditsForEntity("User", id);
+		dto.setAuditLogs(auditService.formatAuditsForDisplay(audits));
+		
+		return dto;
 	}
 
 	@Override
@@ -76,54 +87,142 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User createWithRelations(User user, Long serviceLineId, Set<Long> profileIds) {
-		if (serviceLineId != null) {
-			user.setServiceLine(serviceLineRepository.findById(serviceLineId).orElse(null));
-		}
-		if (profileIds != null && !profileIds.isEmpty()) {
-			user.setProfils(new HashSet<>(profilRepository.findAllById(profileIds)));
-		}
-		return repository.save(user);
+	    if (serviceLineId != null) {
+	        user.setServiceLine(serviceLineRepository.findById(serviceLineId).orElse(null));
+	    }
+	    if (profileIds != null && !profileIds.isEmpty()) {
+	        user.setProfils(new HashSet<>(profilRepository.findAllById(profileIds)));
+	    }
+	    
+	    User savedUser = repository.save(user);
+	    
+	    // Log user creation
+	    Long currentUserId = SecurityUtils.getCurrentUserId();
+	    User currentUser = repository.findById(currentUserId).orElse(null);
+	    if (currentUser != null) {
+	        StringBuilder details = new StringBuilder("Created user: ")
+	            .append(user.getNom())
+	            .append(" ")
+	            .append(user.getPrenom());
+	        
+	        if (user.getServiceLine() != null) {
+	            details.append("; Service Line: ").append(user.getServiceLine().getNom());
+	        }
+	        
+	        if (!user.getProfils().isEmpty()) {
+	            details.append("; Profiles: ")
+	                .append(user.getProfils().stream()
+	                    .map(Profil::getNom)
+	                    .collect(Collectors.joining(", ")));
+	        }
+	        
+	        auditService.logAction("user_created", currentUser, details.toString(), "User", savedUser.getId());
+	    }
+	    
+	    return savedUser;
 	}
 
 	@Override
 	@Transactional
 	public UserResponseDTO updateWithRelations(Long id, UserProfileDTO user) {
-		User existing = findEntityById(id);
+	    User existing = findEntityById(id);
+	    
+	    // Store original values for audit logging
+	    String oldName = existing.getNom();
+	    String oldPrenom = existing.getPrenom();
+	    String oldEmail = existing.getEmail();
+	    String oldUsername = existing.getUsername();
+	    Boolean oldActif = existing.getActif();
+	    Set<Long> oldProfilIds = existing.getProfils().stream()
+	            .map(Profil::getId)
+	            .collect(Collectors.toSet());
+	    Long oldServiceLineId = existing.getServiceLine() != null ? existing.getServiceLine().getId() : null;
 
-		// Update basic fields
-		existing.setNom(user.getNom());
-		existing.setPrenom(user.getPrenom());
-		existing.setEmail(user.getEmail());
-		existing.setUsername(user.getUsername());
-		existing.setMotDePasse(user.getMotDePasse());
-		existing.setActif(user.getActif());
+	    // Update basic fields
+	    existing.setNom(user.getNom());
+	    existing.setPrenom(user.getPrenom());
+	    existing.setEmail(user.getEmail());
+	    existing.setUsername(user.getUsername());
+	    existing.setMotDePasse(user.getMotDePasse());
+	    existing.setActif(user.getActif());
 
-		// ✅ SAFE: Update profils using managed entities
-		if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-			// First, get managed Profil entities from database
-			Set<Profil> managedProfils = new HashSet<>();
-			for (Long profilId : user.getRoles()) {
-				Profil managedProfil = profilRepository.findById(profilId)
-						.orElseThrow(() -> new RuntimeException("Profil introuvable avec l'ID: " + profilId));
-				managedProfils.add(managedProfil);
-			}
+	    // ✅ SAFE: Update profils using managed entities
+	    Set<Profil> managedProfils = new HashSet<>();
+	    if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+	        // First, get managed Profil entities from database
+	        for (Long profilId : user.getRoles()) {
+	            Profil managedProfil = profilRepository.findById(profilId)
+	                    .orElseThrow(() -> new RuntimeException("Profil introuvable avec l'ID: " + profilId));
+	            managedProfils.add(managedProfil);
+	        }
 
-			// Clear existing profils safely
-			existing.getProfils().clear();
+	        // Clear existing profils safely
+	        existing.getProfils().clear();
 
-			// Add managed profils
-			existing.getProfils().addAll(managedProfils);
-		}
+	        // Add managed profils
+	        existing.getProfils().addAll(managedProfils);
+	    }
 
-		// ✅ SAFE: Update service line using managed entity
-		if (user.getServiceLine() != null) {
-			ServiceLine managedServiceLine = serviceLineRepository.findById(user.getServiceLine()).orElseThrow(
-					() -> new RuntimeException("Ligne de service introuvable avec l'ID: " + user.getServiceLine()));
-			existing.setServiceLine(managedServiceLine);
-		}
+	    // ✅ SAFE: Update service line using managed entity
+	    ServiceLine managedServiceLine = null;
+	    if (user.getServiceLine() != null) {
+	        managedServiceLine = serviceLineRepository.findById(user.getServiceLine()).orElseThrow(
+	                () -> new RuntimeException("Ligne de service introuvable avec l'ID: " + user.getServiceLine()));
+	        existing.setServiceLine(managedServiceLine);
+	    }
 
-		User savedUser = repository.save(existing);
-		return convertToResponseDTO(savedUser);
+	    User savedUser = repository.save(existing);
+	    
+	    // Log user update
+	    Long currentUserId = SecurityUtils.getCurrentUserId();
+	    User currentUser = repository.findById(currentUserId).orElse(null);
+	    if (currentUser != null) {
+	        StringBuilder details = new StringBuilder("Updated user: ")
+	            .append(savedUser.getNom())
+	            .append(" ")
+	            .append(savedUser.getPrenom());
+	        
+	        if (!oldName.equals(savedUser.getNom()) || !oldPrenom.equals(savedUser.getPrenom())) {
+	            details.append("; Name changed from: ")
+	                .append(oldName)
+	                .append(" ")
+	                .append(oldPrenom);
+	        }
+	        
+	        if (!oldEmail.equals(savedUser.getEmail())) {
+	            details.append("; Email changed");
+	        }
+	        
+	        if (!oldUsername.equals(savedUser.getUsername())) {
+	            details.append("; Username changed");
+	        }
+	        
+	        if (oldActif != savedUser.getActif()) {
+	            details.append("; Status changed from: ")
+	                .append(oldActif ? "Active" : "Inactive")
+	                .append(" to ")
+	                .append(savedUser.getActif() ? "Active" : "Inactive");
+	        }
+	        
+	        // Check for profile changes
+	        Set<Long> newProfilIds = savedUser.getProfils().stream()
+	                .map(Profil::getId)
+	                .collect(Collectors.toSet());
+	        if (!oldProfilIds.equals(newProfilIds)) {
+	            details.append("; Profiles updated");
+	        }
+	        
+	        // Check for service line changes
+	        Long newServiceLineId = savedUser.getServiceLine() != null ? savedUser.getServiceLine().getId() : null;
+	        if ((oldServiceLineId != null && !oldServiceLineId.equals(newServiceLineId)) ||
+	            (oldServiceLineId == null && newServiceLineId != null)) {
+	            details.append("; Service Line updated");
+	        }
+	        
+	        auditService.logAction("user_updated", currentUser, details.toString(), "User", savedUser.getId());
+	    }
+	    
+	    return convertToResponseDTO(savedUser);
 	}
 
 	@Override
@@ -169,9 +268,24 @@ public class UserServiceImpl implements UserService {
 
 	public UserResponseDTO updateUserStatus(Long id, Boolean actif) {
 		User user = findEntityById(id);
+		Boolean oldStatus = user.getActif();
 		user.setActif(actif);
-		user = repository.save(user);
-		return convertToResponseDTO(user);
+		User savedUser = repository.save(user);
+		
+		// Log user status change
+		Long currentUserId = SecurityUtils.getCurrentUserId();
+		User currentUser = repository.findById(currentUserId).orElse(null);
+		if (currentUser != null) {
+			String details = String.format("Changed user status for %s %s from %s to %s",
+				user.getNom(),
+				user.getPrenom(),
+				oldStatus ? "Active" : "Inactive",
+				actif ? "Active" : "Inactive");
+			
+			auditService.logAction("user_status_changed", currentUser, details, "User", savedUser.getId());
+		}
+		
+		return convertToResponseDTO(savedUser);
 	}
 
 	public void bulkDelete(List<Long> ids) {
@@ -199,5 +313,15 @@ public class UserServiceImpl implements UserService {
 		}
 
 		return dto;
+	}
+
+	public String getUserFullNameById(Long id) {
+	    User user = findEntityById(id);
+	    if (user != null) {
+	        String nom = user.getNom() != null ? user.getNom() : "";
+	        String prenom = user.getPrenom() != null ? user.getPrenom() : "";
+	        return (nom + " " + prenom).trim();
+	    }
+	    return "unassigned";
 	}
 }

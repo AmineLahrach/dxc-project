@@ -1,6 +1,7 @@
 package com.example.GestionPlanAction.controller;
 
 import com.example.GestionPlanAction.dto.VariableActionDTO;
+import com.example.GestionPlanAction.dto.VariableActionResponseDTO;
 import com.example.GestionPlanAction.dto.VariableReponseDTO;
 import com.example.GestionPlanAction.model.VariableAction;
 import com.example.GestionPlanAction.service.VariableActionService;
@@ -25,14 +26,14 @@ public class VariableActionController {
 
     // ✅ GET by ID
     @GetMapping("/{id}")
-    public VariableAction getById(@PathVariable Long id) {
-        return variableActionService.getVariableActionById(id);
+    public VariableActionResponseDTO getById(@PathVariable Long id) {
+        return variableActionService.getVariableActionWithAudits(id);
     }
 
     // ✅ GET by ID
     @GetMapping("/edit/{id}")
-    public VariableReponseDTO getByIdForEdit(@PathVariable Long id) {
-        return variableActionService.getVariableActionEditById(id);
+    public VariableActionResponseDTO getByIdForEdit(@PathVariable Long id) {
+        return variableActionService.getVariableActionWithAudits(id);
     }
 
     // ✅ CREATE

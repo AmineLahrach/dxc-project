@@ -1,8 +1,10 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.ServiceLineResponseDTO;
 import com.example.GestionPlanAction.model.ServiceLine;
 import com.example.GestionPlanAction.service.ServiceLineService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class ServiceLineController {
     }
 
     @GetMapping("/{id}")
-    public ServiceLine getById(@PathVariable Long id) {
+    public ServiceLineResponseDTO getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
@@ -37,5 +39,11 @@ public class ServiceLineController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @GetMapping("/with-audits")
+    public ResponseEntity<List<ServiceLineResponseDTO>> getAllServiceLinesWithAudits() {
+        List<ServiceLineResponseDTO> serviceLines = service.getAllServiceListWithAuditLogs();
+        return ResponseEntity.ok(serviceLines);
     }
 }

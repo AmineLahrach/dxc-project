@@ -2,7 +2,9 @@ package com.example.GestionPlanAction.service;
 
 import com.example.GestionPlanAction.model.Audit;
 import com.example.GestionPlanAction.model.User;
+import com.example.GestionPlanAction.model.VariableAction;
 import com.example.GestionPlanAction.model.PlanAction;
+import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.repository.AuditRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -89,6 +91,66 @@ public class AuditService {
      */
     public List<Audit> getAuditsForPlan(Long planId) {
         return auditRepository.findByEntityTypeAndEntityIdOrderByDateDesc("PlanAction", planId);
+    }
+
+    /**
+     * Get all audit logs for a specific user
+     * @param userId ID of the user
+     * @return List of audits for the user
+     */
+    public List<Audit> getAuditsForUser(Long userId) {
+        return auditRepository.findByEntityTypeAndEntityIdOrderByDateDesc("User", userId);
+    }
+
+    /**
+     * Get all audit logs for a specific service line
+     * @param serviceLineId ID of the service line
+     * @return List of audits for the service line
+     */
+    public List<Audit> getAuditsForServiceLine(Long serviceLineId) {
+        return auditRepository.findByEntityTypeAndEntityIdOrderByDateDesc("ServiceLine", serviceLineId);
+    }
+
+    /**
+     * Get all audit logs for a specific variable action
+     * @param variableActionId ID of the variable action
+     * @return List of audits for the variable action
+     */
+    public List<Audit> getAuditsForVariableAction(Long variableActionId) {
+        return auditRepository.findByEntityTypeAndEntityIdOrderByDateDesc("VariableAction", variableActionId);
+    }
+
+    /**
+     * Get all audit logs for a specific profile
+     * @param profilId ID of the profile
+     * @return List of audits for the profile
+     */
+    public List<Audit> getAuditsForProfil(Long profilId) {
+        return auditRepository.findByEntityTypeAndEntityIdOrderByDateDesc("Profil", profilId);
+    }
+
+    /**
+     * Log variable action changes
+     * @param action The type of action performed (created, updated, etc)
+     * @param user The user who performed the action
+     * @param variableAction The variable action that was modified
+     * @param changeDetails Additional details about the change
+     */
+    public void logVariableActionChange(String action, User user, VariableAction variableAction, String changeDetails) {
+        String details = changeDetails != null ? changeDetails : "";
+        logAction(action, user, details, "VariableAction", variableAction.getId());
+    }
+
+    /**
+     * Log profile changes
+     * @param action The type of action performed (created, updated, etc)
+     * @param user The user who performed the action
+     * @param profil The profile that was modified
+     * @param changeDetails Additional details about the change
+     */
+    public void logProfilAction(String action, User user, Profil profil, String changeDetails) {
+        String details = changeDetails != null ? changeDetails : "";
+        logAction(action, user, details, "Profil", profil.getId());
     }
 
     public Long getUserActionCount(User user, LocalDateTime since) {
