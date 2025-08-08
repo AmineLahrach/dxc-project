@@ -33,6 +33,8 @@ public class ExerciceServiceImpl implements ExerciceService {
         return repository.findAll();
     }
 
+    
+
     @Override
     public ExerciceResponseDTO getById(Long id) {
         Exercice exercice = repository.findById(id)

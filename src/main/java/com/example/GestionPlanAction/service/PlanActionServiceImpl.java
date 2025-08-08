@@ -2,11 +2,16 @@ package com.example.GestionPlanAction.service;
 
 import com.example.GestionPlanAction.dto.PlanActionByIdDto;
 import com.example.GestionPlanAction.dto.PlanActionResponse;
+import com.example.GestionPlanAction.dto.PlanActionTreeResponse;
+import com.example.GestionPlanAction.dto.PlanActionDTOs.PlanActionCreateDTO;
+import com.example.GestionPlanAction.dto.variableActionDTOs.VariableActionDetailDTO;
 import com.example.GestionPlanAction.enums.StatutPlanAction;
 import com.example.GestionPlanAction.model.Audit;
+import com.example.GestionPlanAction.model.Exercice;
 import com.example.GestionPlanAction.model.PlanAction;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.model.VariableAction;
+import com.example.GestionPlanAction.repository.ExerciceRepository;
 import com.example.GestionPlanAction.repository.PlanActionRepository;
 import com.example.GestionPlanAction.repository.UserRepository;
 
@@ -24,6 +29,9 @@ public class PlanActionServiceImpl implements PlanActionService {
 
     @Autowired
     private PlanActionRepository repository;
+
+    @Autowired
+    private ExerciceRepository exerciceRepository;
     
     @Autowired
     private AuditService auditService;
@@ -49,13 +57,38 @@ public class PlanActionServiceImpl implements PlanActionService {
     public PlanActionByIdDto getByIdWithDetails(Long id) {
         PlanAction plan = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PlanAction non trouvé"));
+        
         PlanActionByIdDto resp = new PlanActionByIdDto();
-        BeanUtils.copyProperties(plan, resp);
+        
+        // Copy basic properties
+        resp.setId(plan.getId());
+        resp.setTitre(plan.getTitre());
+        resp.setDescription(plan.getDescription());
+        resp.setStatut(plan.getStatut());
+        resp.setVerrouille(plan.isVerrouille());
+        resp.setExercice(plan.getExercice());
+        resp.setCreatedBy(plan.getCreatedBy());
         
         // Set created by name
         if (plan.getCreatedBy() != null) {
             User user = userRepository.findById(plan.getCreatedBy()).orElse(null);
             resp.setCreatedByName(user != null ? user.getNom() : null);
+        }
+        
+        // Convert VariableActions to DTOs
+        if (plan.getVariableActions() != null) {
+            List<VariableActionDetailDTO> vaDetailDTOs = new ArrayList<>();
+            
+            // First, find only root-level variable actions
+            List<VariableAction> rootVAs = plan.getVariableActions().stream()
+                    .collect(java.util.stream.Collectors.toList());
+            
+            // Convert each root VA and its children recursively
+            for (VariableAction rootVA : rootVAs) {
+                vaDetailDTOs.add(convertToVariableActionDTO(rootVA));
+            }
+            
+            resp.setVariableActions(vaDetailDTOs);
         }
         
         // Add audit logs for this plan action
@@ -65,21 +98,73 @@ public class PlanActionServiceImpl implements PlanActionService {
         return resp;
     }
 
+    // Helper method to convert VariableAction to DTO recursively
+    private VariableActionDetailDTO convertToVariableActionDTO(VariableAction va) {
+        if (va == null) return null;
+        
+        VariableActionDetailDTO dto = new VariableActionDetailDTO();
+        dto.setId(va.getId());
+        dto.setDescription(va.getDescription());
+        dto.setCode(va.getCode());
+        dto.setPoids(va.getPoids());
+        dto.setFige(va.isFige());
+        dto.setNiveau(va.getNiveau());
+        dto.setOrdre(va.getOrdre());
+        
+        // Set responsable details
+        if (va.getResponsable() != null) {
+            dto.setResponsableId(va.getResponsable().getId());
+            dto.setResponsableNom(va.getResponsable().getNom());
+            dto.setResponsablePrenom(va.getResponsable().getPrenom());
+        }
+        
+        // Set parent VA ID
+        if (va.getVaMere() != null) {
+            dto.setVaMereId(va.getVaMere().getId());
+        }
+        
+        return dto;
+    }
+
     @Override
-    public PlanAction create(PlanAction planAction) {
-        if (planAction.getStatut() == null) {
+    public PlanAction create(PlanActionCreateDTO planActionDTO) {
+        PlanAction planAction = new PlanAction();
+        
+        // Copy basic properties
+        planAction.setTitre(planActionDTO.getTitre());
+        planAction.setDescription(planActionDTO.getDescription());
+        planAction.setVerrouille(planActionDTO.isVerrouille());
+        
+        // Set status with fallback
+        if (planActionDTO.getStatut() != null) {
+            planAction.setStatut(planActionDTO.getStatut());
+        } else {
             planAction.setStatut(StatutPlanAction.EN_COURS_PLANIFICATION);
         }
+        
+        // Set exercice by ID
+        if (planActionDTO.getExerciceId() != null) {
+            Exercice exercice = exerciceRepository.findById(planActionDTO.getExerciceId())
+                    .orElseThrow(() -> new RuntimeException("Exercice non trouvé"));
+            planAction.setExercice(exercice);
+            
+            // Generate automatic title based on exercise year if not provided
+            // if (planAction.getTitre() == null || planAction.getTitre().isEmpty()) {
+            Integer exerciceYear = exerciceService.getExerciceYearById(exercice.getId());
+            if (exerciceYear != null) {
+                planAction.setTitre("PA-" + exerciceYear);
+            }
+            // }
+        }
+
         // Set createdBy from security context
         Long currentUserId = SecurityUtils.getCurrentUserId();
         planAction.setCreatedBy(currentUserId);
 
-        if (planAction.getVariableActions() != null) {
-            for (var va : planAction.getVariableActions()) {
-                va.setPlanAction(planAction); // Set parent reference
-            }
-        }
+        // Initialize empty variable actions list
+        planAction.setVariableActions(new ArrayList<>());
         
+        // Save the plan first without variable actions
         PlanAction savedPlan = repository.save(planAction);
         
         // Log the creation action
@@ -92,102 +177,36 @@ public class PlanActionServiceImpl implements PlanActionService {
     }
 
     @Override
-    public PlanActionByIdDto update(Long id, PlanAction updated) {
+    public PlanActionByIdDto update(Long id, PlanActionCreateDTO updated) {
         PlanAction existing = getById(id);
-
-        // Store original values for audit logging
+        
         String oldTitle = existing.getTitre();
         String oldDescription = existing.getDescription();
         StatutPlanAction oldStatus = existing.getStatut();
+        boolean oldVerrouille = existing.isVerrouille();
         Long oldExerciceId = existing.getExercice() != null ? existing.getExercice().getId() : null;
 
-        // --- Track VariableAction changes ---
-        List<VariableAction> oldVarActions = new ArrayList<>(existing.getVariableActions());
-        List<VariableAction> newVarActions = updated.getVariableActions() != null ? updated.getVariableActions() : new ArrayList<>();
-
-        // Build maps for easy lookup
-        java.util.Map<Long, VariableAction> oldMap = new java.util.HashMap<>();
-        for (VariableAction va : oldVarActions) {
-            if (va.getId() != null) oldMap.put(va.getId(), va);
-        }
-        java.util.Map<Long, VariableAction> newMap = new java.util.HashMap<>();
-        for (VariableAction va : newVarActions) {
-            if (va.getId() != null) newMap.put(va.getId(), va);
-        }
-
-        // Detect removed
-        List<VariableAction> removed = new ArrayList<>();
-        for (VariableAction va : oldVarActions) {
-            if (va.getId() != null && !newMap.containsKey(va.getId())) {
-                removed.add(va);
-            }
-        }
-        // Detect added
-        List<VariableAction> added = new ArrayList<>();
-        for (VariableAction va : newVarActions) {
-            if (va.getId() == null || !oldMap.containsKey(va.getId())) {
-                added.add(va);
-            }
-        }
-        // Detect updated
-        List<VariableAction> updatedVars = new ArrayList<>();
-        for (VariableAction va : newVarActions) {
-            if (va.getId() != null && oldMap.containsKey(va.getId())) {
-                VariableAction oldVa = oldMap.get(va.getId());
-                if (!java.util.Objects.equals(va.getDescription(), oldVa.getDescription()) ||
-                    va.getPoids() != oldVa.getPoids() ||
-                    va.isFige() != oldVa.isFige() ||
-                    va.getNiveau() != oldVa.getNiveau() ||
-                    !java.util.Objects.equals(va.getResponsable(), oldVa.getResponsable()) ||
-                    !java.util.Objects.equals(va.getVaMere(), oldVa.getVaMere())) {
-                    updatedVars.add(va);
-                }
-            }
-        }
-
-        // Update fields
         existing.setTitre(updated.getTitre());
         existing.setDescription(updated.getDescription());
         existing.setStatut(updated.getStatut());
-        existing.setExercice(updated.getExercice());
+        existing.setVerrouille(updated.isVerrouille());
+        // Set exercice by ID
+        if (updated.getExerciceId() != null) {
+            Exercice exercice = exerciceRepository.findById(updated.getExerciceId())
+                    .orElseThrow(() -> new RuntimeException("Exercice non trouvé"));
+            existing.setExercice(exercice);
 
-        // Collect incoming IDs
-        List<Long> incomingIds = new ArrayList<>();
-        for (VariableAction va : newVarActions) {
-            if (va.getId() != null) {
-                incomingIds.add(va.getId());
+            // Generate automatic title based on exercise year if not provided
+            // if (planAction.getTitre() == null || planAction.getTitre().isEmpty()) {
+            Integer exerciceYear = exerciceService.getExerciceYearById(exercice.getId());
+            if (exerciceYear != null) {
+                existing.setTitre("PA-" + exerciceYear);
             }
-        }
-
-        // Remove VariableActions not present in the update
-        existing.getVariableActions().removeIf(eva -> eva.getId() != null && !incomingIds.contains(eva.getId()));
-
-        // Update or add VariableActions
-        for (VariableAction va : newVarActions) {
-            va.setPlanAction(existing);
-            if (va.getId() != null) {
-                VariableAction existingVa = existing.getVariableActions().stream()
-                    .filter(eva -> eva.getId().equals(va.getId()))
-                    .findFirst()
-                    .orElse(null);
-                if (existingVa != null) {
-                    existingVa.setDescription(va.getDescription());
-                    existingVa.setPoids(va.getPoids());
-                    existingVa.setFige(va.isFige());
-                    existingVa.setNiveau(va.getNiveau());
-                    existingVa.setResponsable(va.getResponsable());
-                    existingVa.setVaMere(va.getVaMere());
-                } else {
-                    existing.getVariableActions().add(va);
-                }
-            } else {
-                existing.getVariableActions().add(va);
-            }
+            // }
         }
 
         PlanAction savedPlan = repository.save(existing);
 
-        // Log the update action
         Long currentUserId = SecurityUtils.getCurrentUserId();
         User currentUser = userRepository.findById(currentUserId).orElse(null);
         if (currentUser != null) {
@@ -211,9 +230,15 @@ public class PlanActionServiceImpl implements PlanActionService {
                     .append(updated.getStatut()).append("'; ");
             }
 
+            if (oldVerrouille != updated.isVerrouille()) {
+                changeDetails.append("verrouille changed from '")
+                    .append(oldVerrouille).append("' to '")
+                    .append(updated.isVerrouille()).append("'; ");
+            }
+
             // Log exercice year change using ExerciceServiceImpl
             // Long oldExerciceId = _oldExerciceId.getExercice() != null ? existing.getExercice().getId() : null;
-            Long newExerciceId = updated.getExercice() != null ? updated.getExercice().getId() : null;
+            Long newExerciceId = updated.getExerciceId() != null ? updated.getExerciceId() : null;
             if (!java.util.Objects.equals(oldExerciceId, newExerciceId)) {
                 if (oldExerciceId != null && newExerciceId != null) {
                     Integer oldYear = exerciceService.getExerciceYearById(oldExerciceId);
@@ -231,42 +256,7 @@ public class PlanActionServiceImpl implements PlanActionService {
                         .append(oldYear != null ? oldYear : "N/A").append("\"); ");
                 }
             }
-
-            // Log VariableAction changes only if there are any
-            if (!added.isEmpty()) {
-                changeDetails.append("Added VariableActions: ");
-                for (VariableAction va : added) {
-                    changeDetails.append("\"").append(va.getDescription()).append("\"; ");
-                    // Create separate audit entry for each added variable
-                    auditService.logAction("variableaction_added", currentUser, 
-                        "Added new variable action: \"" + va.getDescription() + "\"", 
-                        "VariableAction", va.getId());
-                }
-            }
-
-            if (!removed.isEmpty()) {
-                changeDetails.append("Removed VariableActions: ");
-                for (VariableAction va : removed) {
-                    changeDetails.append("\"").append(va.getDescription()).append("\"; ");
-                    // Create separate audit entry for each removed variable
-                    auditService.logAction("variableaction_removed", currentUser, 
-                        "Removed variable action: \"" + va.getDescription() + "\"", 
-                        "VariableAction", va.getId());
-                }
-            }
-
-            // if (!updatedVars.isEmpty()) {
-            //     changeDetails.append("Updated VariableActions: ");
-            //     for (VariableAction va : updatedVars) {
-            //         changeDetails.append("\"").append(va.getDescription()).append("\": ")
-            //        .append(va.getChangeLog()).append("; ");
-            //         // Create separate audit entry for each updated variable
-            //         auditService.logAction("variableaction_updated", currentUser, 
-            //             "Updated variable action \"" + va.getDescription() + "\": " + va.getChangeLog(), 
-            //             "VariableAction", va.getId());
-            //     }
-            // }
-
+            
             auditService.logPlanAction("updated", currentUser, savedPlan, changeDetails.toString());
         }
 
@@ -336,6 +326,66 @@ public class PlanActionServiceImpl implements PlanActionService {
             responses.add(resp);
         }
         return responses;
+    }
+
+    public List<PlanActionTreeResponse> getPlanActionsTree() {
+        List<PlanAction> plans = repository.findAll();
+        List<PlanActionTreeResponse> result = new ArrayList<>();
+        for (PlanAction plan : plans) {
+            PlanActionTreeResponse planNode = new PlanActionTreeResponse();
+            planNode.setName(plan.getTitre());
+            planNode.setId(plan.getId());
+            planNode.setPlanActionId(plan.getId());
+            planNode.setNodeType("PLAN_ACTION"); 
+            planNode.setDescription(plan.getDescription());
+            // Only pass top-level VariableActions (vaMere == null)
+            planNode.setChildren(buildVariableTree(
+                plan.getVariableActions() == null ? null :
+                plan.getVariableActions().stream()
+                    .filter(va -> va.getVaMere() == null)
+                    .toList()
+            ));
+            result.add(planNode);
+        }
+        return result;
+    }
+
+    private List<PlanActionTreeResponse> buildVariableTree(List<VariableAction> variables) {
+        if (variables == null) return new ArrayList<>();
+        List<PlanActionTreeResponse> children = new ArrayList<>();
+        for (VariableAction va : variables) {
+            PlanActionTreeResponse node = new PlanActionTreeResponse();
+            node.setName(va.getCode()); // or va.getCode() if you want code
+            node.setNodeType("VARIABLE_ACTION");
+            node.setPoids(va.getPoids());
+            node.setFige(va.isFige());
+            node.setId(va.getId());
+            node.setPlanActionId(va.getPlanAction() != null ? va.getPlanAction().getId() : null);
+            node.setDescription(va.getDescription());
+            node.setChildren(buildVariableTree(va.getSousVAs()));
+            children.add(node);
+        }
+        return children;
+    }
+
+    /**
+     * Recursively assigns hierarchical codes and levels to VariableActions.
+     * Each code follows the pattern: VA1, VA11, VA12, VA111, etc.
+     * Level is derived from the number of digits after "VA".
+     * @param variableActions List of VariableActions (top-level or children)
+     * @param parentCode The code of the parent VA (null for top-level)
+     */
+    public void assignCodesAndLevels(List<VariableAction> variableActions, String parentCode) {
+        if (variableActions == null) return;
+        int counter = 1;
+        for (VariableAction va : variableActions) {
+            String code = (parentCode == null) ? "VA" + counter : parentCode + counter;
+            va.setDescription(code); // If you want a dedicated code field, add it to VariableAction
+            va.setNiveau(code.substring(2).length()); // Level = number of digits after "VA"
+            counter++;
+            // Recursively assign for children
+            assignCodesAndLevels(va.getSousVAs(), code);
+        }
     }
 
     @Override

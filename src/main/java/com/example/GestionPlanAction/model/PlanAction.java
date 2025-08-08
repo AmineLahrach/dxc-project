@@ -20,7 +20,7 @@ public class PlanAction {
 
     private String titre;
     private String description;
-
+    private boolean verrouille;
     @Enumerated(EnumType.STRING)
     private StatutPlanAction statut;
 
@@ -28,9 +28,11 @@ public class PlanAction {
     @JoinColumn(name = "exercice_id")
     private Exercice exercice;
 
-    @OneToMany(mappedBy = "planAction", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("plan-variables")
+    @OneToMany(mappedBy = "planAction", cascade = CascadeType.ALL)
     private List<VariableAction> variableActions;
+
+    
 
     private Long createdBy; // User ID who created the plan
 }

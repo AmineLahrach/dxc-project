@@ -6,6 +6,7 @@ public class PlanActionResponse {
     private Long id;
     private String titre;
     private String description;
+    private boolean verrouille;
     private StatutPlanAction statut;
     private Long createdBy;
     private String createdByName;
@@ -34,6 +35,14 @@ public class PlanActionResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isVerrouille() {
+        return verrouille;
+    }
+
+    public void setVerrouille(boolean verrouille) {
+        this.verrouille = verrouille;
     }
 
     public StatutPlanAction getStatut() {

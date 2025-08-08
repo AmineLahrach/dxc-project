@@ -6,6 +6,8 @@ import lombok.Data;
 public class VariableActionDTO {
     private Long id;
     private String description;
+    private String code;
+    private Integer ordre;
     private float poids;
     private boolean fige;
     private int niveau;

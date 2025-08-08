@@ -1,11 +1,15 @@
 package com.example.GestionPlanAction.controller;
 
+import com.example.GestionPlanAction.dto.VariableActionCreateDTO;
 import com.example.GestionPlanAction.dto.VariableActionDTO;
+import com.example.GestionPlanAction.dto.VariableActionDropdownDTO;
+import com.example.GestionPlanAction.dto.VariableActionHierarchyDTO;
 import com.example.GestionPlanAction.dto.VariableActionResponseDTO;
-import com.example.GestionPlanAction.dto.VariableReponseDTO;
+import com.example.GestionPlanAction.dto.VariableActionUpdateDTO;
 import com.example.GestionPlanAction.model.VariableAction;
 import com.example.GestionPlanAction.service.VariableActionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,14 +42,14 @@ public class VariableActionController {
 
     // ✅ CREATE
     @PostMapping
-    public VariableAction create(@RequestBody VariableAction variableAction) {
-        return variableActionService.createVariableAction(variableAction);
+    public VariableActionResponseDTO create(@RequestBody VariableActionCreateDTO dto) {
+        return variableActionService.createVariableAction(dto);
     }
 
     // ✅ UPDATE
     @PutMapping("/{id}")
-    public VariableAction update(@PathVariable Long id, @RequestBody VariableAction updated) {
-        return variableActionService.updateVariableAction(id, updated);
+    public VariableActionResponseDTO update(@PathVariable Long id, @RequestBody VariableActionUpdateDTO dto) {
+        return variableActionService.updateVariableAction(id, dto);
     }
 
     // ✅ DELETE
@@ -58,5 +62,37 @@ public class VariableActionController {
     @PatchMapping("/{id}/freeze")
     public VariableAction updateFige(@PathVariable Long id, @RequestBody boolean fige) {
         return variableActionService.updateFige(id, fige);
+    }
+
+    @GetMapping("/hierarchy")
+    public List<VariableActionHierarchyDTO> getHierarchy(@RequestParam(required = false) Long planActionId) {
+        return variableActionService.getVariableActionHierarchy(planActionId);
+    }
+
+    @PostMapping("/{parentId}/children")
+    public VariableActionResponseDTO createChild(@PathVariable Long parentId, @RequestBody VariableActionCreateDTO dto) {
+        // Set parent ID in the DTO
+        dto.setVaMereId(parentId);
+        return variableActionService.createVariableAction(dto);
+    }
+
+    @PutMapping("/{id}/move")
+    public VariableAction moveVariableAction(@PathVariable Long id, @RequestParam(required = false) Long newParentId) {
+        return variableActionService.moveVariableAction(id, newParentId);
+    }
+
+    @PutMapping("/{parentId}/recalculate-weights")
+    public ResponseEntity<String> recalculateWeights(@PathVariable Long parentId) {
+        VariableAction parent = variableActionService.getVariableActionById(parentId);
+        variableActionService.recalculateParentWeights(parent);
+        return ResponseEntity.ok("Weights recalculated successfully");
+    }
+
+    /**
+     * Get variable actions for dropdown by plan action ID
+     */
+    @GetMapping("/dropdown/{id}")
+    public List<VariableActionDropdownDTO> getForDropdown(@PathVariable Long id) {
+        return variableActionService.getVariableActionsByPlanForDropdown(id);
     }
 }
