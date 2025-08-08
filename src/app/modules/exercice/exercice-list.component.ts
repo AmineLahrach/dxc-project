@@ -9,19 +9,22 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../shared/confirm-dialog-component/confirm-dialog-component';
 import { SharedModule } from '../shared/shared.module';
+import { AuthService } from 'app/core/auth/auth.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-exercice-list',    
-  imports: [SharedModule],
+  imports: [CommonModule, SharedModule],
   templateUrl: './exercice-list.component.html'
 })
 export class ExerciceListComponent implements OnInit {
-  displayedColumns: string[] = ['select', 'annee', 'verrouille', 'actions'];
+  displayedColumns: string[] = ['annee', 'verrouille', 'actions'];
   dataSource = new MatTableDataSource<Exercice>([]);
   loading = true;
   searchControl = new FormControl('');
   statusFilter = new FormControl('all');
   selectedExercises: Exercice[] = [];
+  isDirector: boolean;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -29,8 +32,11 @@ export class ExerciceListComponent implements OnInit {
   constructor(
     private exerciceService: ExerciceService,
     private dialog: MatDialog,
-    private router: Router
-  ) {}
+    private router: Router,
+    private _authService: AuthService
+  ) {
+    this.isDirector = this._authService.isDirector();
+  }
 
   ngOnInit(): void {
     this.loadExercises();

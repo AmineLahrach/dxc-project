@@ -47,7 +47,13 @@
         <!-- Stats cards -->
         <div class="grid w-full min-w-0 grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-5 mb-6">
             <!-- Total Users Card -->
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow cursor-pointer hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                 (click)="navigateTo('/user')"
+                 (keydown.enter)="navigateTo('/user')"
+                 tabindex="0"
+                 matTooltip="Click to view all users"
+                 role="button"
+                 aria-label="Navigate to users page">
                 <div class="flex items-start justify-between">
                     <div class="truncate text-lg font-medium leading-6 tracking-tight">
                         Total Users
@@ -62,8 +68,15 @@
                     </div>
                 </div>
             </div>           
+    
             <!-- Total Plans Card -->
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow cursor-pointer hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300"
+                 (click)="navigateTo('/plans')"
+                 (keydown.enter)="navigateTo('/plans')"
+                 tabindex="0"
+                 matTooltip="Click to view all plans"
+                 role="button"
+                 aria-label="Navigate to plans page">
                 <div class="flex items-start justify-between">
                     <div class="truncate text-lg font-medium leading-6 tracking-tight">
                         Total Plans
@@ -78,8 +91,15 @@
                     </div>
                 </div>
             </div>           
+    
             <!-- Active Exercises Card -->
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow cursor-pointer hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                 (click)="navigateTo('/exercises')"
+                 (keydown.enter)="navigateTo('/exercises')"
+                 tabindex="0"
+                 matTooltip="Click to view all exercises"
+                 role="button"
+                 aria-label="Navigate to exercises page">
                 <div class="flex items-start justify-between">
                     <div class="truncate text-lg font-medium leading-6 tracking-tight">
                         Active Exercises
@@ -94,8 +114,15 @@
                     </div>
                 </div>
             </div>
-             <!-- Service Lines Card -->
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+            
+            <!-- Service Lines Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow cursor-pointer hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                 (click)="navigateTo('/service-lines')"
+                 (keydown.enter)="navigateTo('/service-lines')"
+                 tabindex="0"
+                 matTooltip="Click to view all service lines"
+                 role="button"
+                 aria-label="Navigate to service lines page">
                 <div class="flex items-start justify-between">
                     <div class="truncate text-lg font-medium leading-6 tracking-tight">
                         Service Lines
@@ -110,8 +137,15 @@
                     </div>
                 </div>
             </div>
-             <!-- Total Profils Card -->
-            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow">
+            
+            <!-- Total Profils Card -->
+            <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl p-6 shadow cursor-pointer hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-300"
+                 (click)="navigateTo('/profiles')"
+                 (keydown.enter)="navigateTo('/profiles')"
+                 tabindex="0"
+                 matTooltip="Click to view all profiles"
+                 role="button"
+                 aria-label="Navigate to profiles page">
                 <div class="flex items-start justify-between">
                     <div class="truncate text-lg font-medium leading-6 tracking-tight">
                         Total Profils

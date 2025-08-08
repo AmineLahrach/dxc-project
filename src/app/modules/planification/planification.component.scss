@@ -1,0 +1,214 @@
+/* planification.component.scss */
+.variable-tree {
+  .mat-tree {
+    background: transparent;
+  }
+
+  .tree-node {
+    margin-bottom: 4px;
+    
+    &.plan-node {
+      .mat-tree-node {
+        background: rgba(59, 130, 246, 0.05);
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        
+        &:hover {
+          background: rgba(59, 130, 246, 0.1);
+        }
+      }
+    }
+    
+    &.variable-node {
+      .mat-tree-node {
+        transition: all 0.2s ease;
+        border-radius: 6px;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.04);
+          transform: translateX(2px);
+        }
+      }
+    }
+  }
+
+  .mat-tree-node {
+    min-height: 48px;
+    padding: 0;
+    
+    &.cdk-program-focused {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    bottom: disabled{
+      padding-left: 25px !important
+    };
+  }
+
+  .mat-icon-button {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    
+    .mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // Level-specific indentation
+  .variable-node {
+    &[data-level="1"] { margin-left: 0; }
+    &[data-level="2"] { margin-left: 24px; }
+    &[data-level="3"] { margin-left: 48px; }
+    &[data-level="4"] { margin-left: 72px; }
+  }
+}
+
+// Level color indicators
+.level-indicator {
+  &.level-1 {
+    @apply bg-red-100 text-red-600 border-red-200;
+  }
+  
+  &.level-2 {
+    @apply bg-yellow-100 text-yellow-600 border-yellow-200;
+  }
+  
+  &.level-3 {
+    @apply bg-green-100 text-green-600 border-green-200;
+  }
+  
+  &.level-4 {
+    @apply bg-blue-100 text-blue-600 border-blue-200;
+  }
+}
+
+// Animation for expand/collapse
+.mat-tree-node .mat-icon {
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+// Custom scrollbar for tree
+.variable-tree {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// Action buttons styling
+.action-buttons {
+  .mat-icon-button {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    &.text-green-600:hover {
+      background: rgba(34, 197, 94, 0.1);
+    }
+    
+    &.text-blue-600:hover {
+      background: rgba(59, 130, 246, 0.1);
+    }
+    
+    &.text-red-600:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+}
+
+// Weight distribution styling
+.weight-indicator {
+  font-size: 11px;
+  opacity: 0.8;
+  
+  &.over-weight {
+    @apply text-red-600 font-medium;
+  }
+  
+  &.under-weight {
+    @apply text-orange-600 font-medium;
+  }
+  
+  &.valid-weight {
+    @apply text-green-600;
+  }
+}
+
+.empty-state-node {
+  margin: 1rem 0;
+  
+  .icon-size-10 {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+}
+
+.example-tree-invisible {
+  display: none;
+}
+
+.example-tree ul,
+.example-tree li {
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-type: none;
+}
+
+/*
+ * This padding sets alignment of the nested nodes.
+ */
+.example-tree .mat-nested-tree-node div[role=group] {
+  padding-left: 40px;
+}
+
+/*
+ * Padding for leaf nodes.
+ * Leaf nodes need to have padding so as to align with other non-leaf nodes
+ * under the same parent.
+ */
+.example-tree div[role=group] > .mat-nested-tree-node {
+  padding-left: 40px;
+}
+
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .variable-tree {
+    .tree-node {
+      .mat-tree-node {
+        padding: 8px 12px;
+        min-height: 56px;
+      }
+    }
+    
+    .action-buttons {
+      .mat-icon-button {
+        width: 32px;
+        height: 32px;
+      }
+    }
+  }
+}

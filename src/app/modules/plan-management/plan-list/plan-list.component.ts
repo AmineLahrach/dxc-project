@@ -38,8 +38,8 @@ export class PlanListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
 
   dataSource: MatTableDataSource<PlanAction> = new MatTableDataSource();
-  displayedColumns: string[] = ['select', 'titre', 'description', 'statut', 'createdBy', 'actions'];
-  
+  displayedColumns: string[] = ['titre', 'description', 'statut', 'verrouille', 'actions'];
+
   // Filter controls
   searchControl = new FormControl('');
   statusFilter = new FormControl([]);
@@ -54,7 +54,7 @@ export class PlanListComponent implements OnInit, OnDestroy {
 
   loading = false;
   selectedPlans: PlanAction[] = [];
-
+  isDirector: boolean = false;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
   constructor(
@@ -63,7 +63,9 @@ export class PlanListComponent implements OnInit, OnDestroy {
     private _router: Router,
     private _dialog: MatDialog,
     private _snackBar: MatSnackBar
-  ) {}
+  ) {
+    this.isDirector = this._authService.isDirector();
+  }
 
   ngOnInit(): void {
     this.initializeDataSource();
@@ -200,18 +202,7 @@ export class PlanListComponent implements OnInit, OnDestroy {
     });
   }
 
-  duplicatePlan(plan: PlanAction): void {
-    const duplicatedPlan = {
-      titre: `${plan.titre} (Copy)`,
-      description: plan.description,
-      exercice: { id: plan.exercice.id! } // Send as object
-    };
-
-    this._planService.createPlan(duplicatedPlan).subscribe(() => {
-      this.loadPlans();
-    });
-  }
-
+  
   // Bulk actions
   toggleSelection(plan: PlanAction): void {
     const index = this.selectedPlans.findIndex(p => p.id === plan.id);
@@ -289,6 +280,20 @@ export class PlanListComponent implements OnInit, OnDestroy {
         this.loadPlans();
       });
   }
+
+  toggleLock(plan: PlanAction): void {
+      const updatedPlan = {
+        ...plan,
+        verrouille: !plan.verrouille
+      };
+
+      this._planService.updatePlanLockStatus(updatedPlan).subscribe({
+        next: () => {
+          this.loadPlans();
+        },
+        error: (error) => console.error('Error toggling plan lock status:', error)
+      });
+    }
 
   trackByFn(index: number, item: PlanAction): any {
     return item.id || index;

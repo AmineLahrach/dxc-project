@@ -23,6 +23,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { AuthService } from 'app/core/auth/auth.service';
 
 @Component({
   selector: 'app-plan-detail',
@@ -58,6 +59,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
   plan: PlanAction | null = null;
   loading = false;
   isEditMode = false;
+  isDirector: boolean = false;
   
   // Edit mode properties
   planForm: FormGroup;
@@ -74,8 +76,10 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     private _userService: UserService,
     private _router: Router,
     private _route: ActivatedRoute,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private _authService: AuthService
   ) {
+    this.isDirector = this._authService.isDirector();
     // Initialize the form
     this.initializeForm();
   }
@@ -90,7 +94,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
   }
-
+  
   private checkRouteParams(): void {
     this._route.params
       .pipe(takeUntil(this._unsubscribeAll))
@@ -118,7 +122,7 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
         }
       });
   }
-
+  
   private loadData(): void {
     // Load exercises
     this._planService.getExercises()
@@ -143,62 +147,25 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     }
     this.isEditMode = !this.isEditMode;
   }
-
-  // Form methods
+  
   private initializeForm(): void {
     this.planForm = this._formBuilder.group({
       titre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(1000)]],
-      exerciceId: ['', Validators.required],
-      dueDate: [''],
-      variableActions: this._formBuilder.array([])
+      verrouille: [false],
+      exerciceId: ['', Validators.required]
     });
   }
-
+  
   private populateForm(plan: PlanAction): void {
     this.planForm.patchValue({
       titre: plan.titre,
       description: plan.description,
+      verrouille: plan.verrouille,
       exerciceId: plan.exercice && plan.exercice.id ? plan.exercice.id : null, // Safe check
-      dueDate: plan.dueDate
-    });
-
-    // Populate variable actions
-    const variableActionsArray = this.planForm.get('variableActions') as FormArray;
-    variableActionsArray.clear();
-    
-    if (plan.variableActions) {
-      plan.variableActions.forEach(variable => {
-        variableActionsArray.push(this.createVariableFormGroup(variable));
-      });
-    }
-  }
-
-  // Variable Actions Management
-  get variableActions(): FormArray {
-    return this.planForm.get('variableActions') as FormArray;
-  }
-  
-  private createVariableFormGroup(variable?: any): FormGroup {
-    return this._formBuilder.group({
-      id: [variable?.id || null],
-      description: [variable?.description || '', [Validators.required, Validators.minLength(5)]],
-      poids: [variable?.poids || 0, [Validators.required, Validators.min(0), Validators.max(1)]],
-      niveau: [variable?.niveau || 1, [Validators.required, Validators.min(1)]],
-      responsableId: [variable?.responsable?.id || '', Validators.required],
-      vaMereId: [variable?.vaMere?.id || null],
-      fige: [variable?.fige || false]
     });
   }
 
-  addVariableAction(): void {
-    this.variableActions.push(this.createVariableFormGroup());
-  }
-
-  removeVariableAction(index: number): void {
-    this.variableActions.removeAt(index);
-  }
-  
   onSubmit(): void {
     if (this.planForm.invalid) {
       this.markFormGroupTouched();
@@ -219,8 +186,9 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     const updateData: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
+      verrouille: formValue.verrouille || false,
       statut: this.plan?.statut || ActionPlanStatus.PLANNING,
-      exercice: { id: Number(formValue.exerciceId) }, // Send as object
+      exerciceId: Number(formValue.exerciceId), // Send as object
       variableActions: formValue.variableActions?.map((va: any) => ({
         id: va.id ? va.id : null,
         description: va.description,
@@ -252,7 +220,8 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     const createRequest: PlanActionCreateRequest = {
       titre: formValue.titre,
       description: formValue.description,
-      exercice: { id: Number(formValue.exerciceId) },
+      verrouille: formValue.verrouille || false,
+      exerciceId: Number(formValue.exerciceId),
       statut: ActionPlanStatus.PLANNING,
       variableActions: formValue.variableActions?.map((va: any) => ({
         description: va.description,
@@ -308,31 +277,9 @@ export class PlanDetailComponent implements OnInit, OnDestroy {
     return '';
   } 
   
-  getVariableFieldError(index: number, fieldName: string): string {
-    const control = this.variableActions.at(index).get(fieldName);
-    if (control?.errors && control.touched) {
-      if (control.errors['required']) return `${fieldName} is required`;
-      if (control.errors['minlength']) return `${fieldName} is too short`;
-      if (control.errors['min']) return `Value too low`;
-      if (control.errors['max']) return `Value too high`;
-    }
-    return '';
-  }
-  
   getUserName(userId: number | string): string {
     const user = this.users.find(u => u.id === userId.toString());
     return user ? `${user.prenom} ${user.nom}` : 'Unknown User';
-  }
-  
-  getTotalWeight(): number {
-      return this.variableActions.controls.reduce((total, control) => {
-      return total + (control.get('poids')?.value || 0);
-    }, 0);
-  }
-  
-  isWeightValid(): boolean {
-    const total = this.getTotalWeight();
-    return Math.abs(total - 1.0) < 0.01; // Allow small floating point differences
   }
   
   getProgressColor(progress: number): string {

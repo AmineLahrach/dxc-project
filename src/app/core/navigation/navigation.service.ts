@@ -11,6 +11,13 @@ export class NavigationService {
     // Define the default navigation once
     private _defaultNavItems : FuseNavigationItem[] = [
         {id: 'dashboard', title: 'Dashboard', type: 'basic', icon: 'heroicons_outline:home', link: '/dashboard/redirect-to-dashboard'},            
+        {
+            id: 'planification', // Renamed from 'variables'
+            title: 'Planification',
+            type: 'basic',
+            icon: 'heroicons_outline:document-text',
+            link: '/planification'
+        },
         {id: 'plans', title: 'Action Plans', subtitle: 'Manage strategic plans', type: 'collapsable', icon: 'heroicons_outline:document-text',
             children: [
                 {id: 'plans.list', title: 'All Plans', type: 'basic', icon: 'heroicons_outline:list-bullet', link: '/plans'},

@@ -9,7 +9,7 @@ import { PlanService } from 'app/modules/plan-management/plan-service';
 import { AuthService } from 'app/core/auth/auth.service';
 import { VariableAction } from 'app/models/business.models';
 import { PlanAction, VariableActionListRequest } from 'app/models/plan.models';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { User } from 'app/models/auth.models';
 import { SharedModule } from 'app/modules/shared/shared.module';
@@ -24,8 +24,8 @@ export class VariableListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
 
   dataSource: MatTableDataSource<VariableActionListRequest> = new MatTableDataSource();
-  displayedColumns: string[] = ['description', 'plan', 'responsible', 'poids', 'niveau', 'progress', 'status', 'actions'];
-  
+  displayedColumns: string[] = ['code', 'description', 'plan', 'responsible', 'poids', 'niveau', 'actions'];
+
   // Filter controls
   searchControl = new FormControl('');
   planFilter = new FormControl('');
@@ -86,7 +86,7 @@ export class VariableListComponent implements OnInit, OnDestroy {
         case 'responsible': return `${data.responsablePrenom} ${data.responsableNom}`;
         case 'poids': return data.poids;
         case 'niveau': return data.niveau;
-        case 'progress': return 0;
+        case 'code': return 0;
         case 'status': return '';
         default: return '';
       }

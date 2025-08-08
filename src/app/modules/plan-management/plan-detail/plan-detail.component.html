@@ -54,13 +54,13 @@
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-left'"></mat-icon>
                     <span class="ml-2">Back</span>
                 </button>
-                <button
+                <button *ngIf="isDirector"
                     mat-stroked-button
                     [matMenuTriggerFor]="statusMenu">
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
                     <span class="ml-2">Status</span>
                 </button>
-                <mat-menu #statusMenu="matMenu">
+                <mat-menu #statusMenu="matMenu" *ngIf="isDirector">
                     <button mat-menu-item (click)="updateStatus(ActionPlanStatus.PLANNING)">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-blue-600 bg-blue-100">
                             Planning
@@ -82,14 +82,14 @@
                         </span>
                     </button>
                 </mat-menu>
-                <button
+                <button *ngIf="isDirector"
                     mat-stroked-button
                     color="primary"
                     (click)="toggleEditMode()">
                     <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                     <span class="ml-2">Edit</span>
                 </button>
-                <button
+                <button *ngIf="isDirector"
                     mat-stroked-button
                     color="warn"
                     (click)="deletePlan()">
@@ -109,7 +109,7 @@
                     mat-flat-button
                     color="primary"
                     (click)="onSubmit()"
-                    [disabled]="loading || planForm.invalid || !isWeightValid()">
+                    [disabled]="loading || planForm.invalid">
                     <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
                     <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
                     <span class="ml-2">Save Changes</span>
@@ -125,9 +125,9 @@
     
     <!-- View Mode Content -->
     <ng-container *ngIf="!loading && !isEditMode && plan">
-        <div class="flex-auto p-6 sm:p-10">
+        <div class="flex-auto p-6 sm:px-10 mt-5">
             <!-- Plan Overview Card -->
-            <div class="bg-card rounded-2xl shadow p-6 mb-8">
+            <div class="bg-card rounded-2xl shadow p-6">
                 <div class="flex items-center mb-6">
                     <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
                     <h3 class="text-lg font-semibold">Plan Overview</h3>
@@ -146,27 +146,9 @@
                         </div>
                         
                          <div>
-                            <h4 class="text-sm font-medium text-secondary mb-2">Due Date</h4>
-                            <p class="text-base">{{ formatDate(plan.dueDate) }}</p>
-                        </div>
-                        <!--
-                        <div>
-                            <h4 class="text-sm font-medium text-secondary mb-2">Progress</h4>
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                    <div 
-                                        class="h-2 rounded-full transition-all duration-300"
-                                        [class]="getProgressColor(plan.progress || 0)"
-                                        [style.width.%]="plan.progress || 0"
-                                        [class.bg-current]="true">
-                                    </div>
-                                </div>
-                                <span class="text-base font-medium min-w-12">
-                                    {{ plan.progress || 0 }}%
-                                </span>
-                            </div>
-                        </div> -->
-                        
+                            <h4 class="text-sm font-medium text-secondary mb-2">Locked</h4>
+                            <p class="text-base">{{ plan.verrouille ? 'Yes' : 'No' }}</p>
+                        </div>                     
                         <div>
                             <h4 class="text-sm font-medium text-secondary mb-2">Created By</h4>
                             <p class="text-base">{{ plan.createdByName || 'Unknown' }}</p>
@@ -174,10 +156,81 @@
                     </div>
                 </div>
             </div>
-            
+        </div>
+    </ng-container>
+    
+    <!-- Edit Mode Content -->
+    <ng-container *ngIf="!loading && isEditMode">
+        <div class="flex-auto p-6 sm:px-10">
+            <form [formGroup]="planForm" (ngSubmit)="onSubmit()" class="space-y-8">
+                <!-- Basic Information -->
+                <div class="bg-card rounded-2xl shadow p-6">
+                    <div class="flex items-center mb-2">
+                        <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+                        <h3 class="text-lg font-semibold">Basic Information</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- Plan Title -->
+                        <mat-form-field class="lg:col-span-2">
+                            <mat-label>Plan Title</mat-label>
+                            <input matInput formControlName="titre" placeholder="Enter a descriptive title for your plan">
+                            <mat-error>{{getFieldError('titre')}}</mat-error>
+                            <mat-hint>A clear, concise title that describes the plan's objective</mat-hint>
+                        </mat-form-field>
+
+                        <!-- Exercise -->
+                        <mat-form-field>
+                            <mat-label>Exercise</mat-label>
+                            <mat-select formControlName="exerciceId">
+                                <mat-option *ngFor="let exercise of exercises" [value]="exercise.id">
+                                    {{exercise.annee}} - {{exercise.description}}
+                                </mat-option>
+                            </mat-select>
+                            <mat-error>{{getFieldError('exerciceId')}}</mat-error>
+                        </mat-form-field>
+
+                        <!-- Description -->
+                        <mat-form-field class="lg:col-span-2">
+                            <mat-label>Description</mat-label>
+                            <textarea 
+                                matInput 
+                                formControlName="description" 
+                                rows="4"
+                                placeholder="Provide a detailed description of the action plan">
+                            </textarea>
+                            <mat-error>{{getFieldError('description')}}</mat-error>
+                            <mat-hint>Detailed explanation of the plan's objectives and scope</mat-hint>
+                        </mat-form-field>
+                    </div>
+                        <div class="flex items-center justify-end space-x-4 pt-6">
+                        <button
+                            type="button"
+                            mat-stroked-button
+                            (click)="cancelEdit()">
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            mat-flat-button
+                            color="primary"
+                            [disabled]="loading || planForm.invalid">
+                            <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+                            <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+                            <span class="ml-2">Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </ng-container>
+
+    <ng-container>
+        <div class="flex-auto p-6 sm:px-10">
             <!-- Action Variables Card -->
-            <div class="bg-card rounded-2xl shadow p-6 mb-8">
-                <div class="flex items-center justify-between mb-6">
+            <div class="bg-card rounded-2xl shadow p-6" *ngIf="plan?.variableActions?.length > 0">
+                <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:variable'"></mat-icon>
                         <div>
@@ -187,26 +240,27 @@
                     </div>
                 </div>
                 
-                <div *ngIf="!plan.variableActions?.length" class="text-center py-8">
+                <div *ngIf="!plan && !plan?.variableActions.length" class="text-center py-8">
                     <mat-icon class="icon-size-16 text-hint mb-4" [svgIcon]="'heroicons_outline:document-text'"></mat-icon>
                     <div class="text-lg font-medium mb-2">No variables defined</div>
                     <div class="text-secondary">This plan has no measurable variables defined</div>
                 </div>
                 
-                <div *ngIf="plan.variableActions?.length" class="overflow-x-auto">
+                <div *ngIf="plan?.variableActions?.length" class="overflow-x-auto">
                     <table class="min-w-full divide-y">
                         <thead>
                             <tr>
+                                <th class="py-3 text-left text-sm font-medium text-secondary w-40">Code</th>
                                 <th class="py-3 text-left text-sm font-medium text-secondary">Description</th>
                                 <th class="py-3 text-left text-sm font-medium text-secondary w-32">Level</th>
                                 <th class="py-3 text-left text-sm font-medium text-secondary w-32">Weight</th>
-                                <th class="py-3 text-left text-sm font-medium text-secondary w-48">Responsible</th>
-                                <th class="py-3 text-left text-sm font-medium text-secondary w-40">Status</th>
-                                <th class="py-3 text-left text-sm font-medium text-secondary w-48">Progress</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y">
                             <tr *ngFor="let variable of plan.variableActions" class="hover:bg-gray-50">
+                                 <td class="py-4">
+                                    <span class="font-medium text-primary">{{ variable.code }}</span>                                    
+                                </td>
                                 <td class="py-4">
                                     <div class="flex items-start">
                                         <span class="text-sm">{{ variable.description }}</span>
@@ -231,43 +285,16 @@
                                     </span>
                                 </td>
                                 <td class="py-4 text-sm">{{ variable.poids | number:'1.2-2' }}</td>
-                                <td class="py-4">
-                                    <div class="flex items-center">
-                                        <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-2">
-                                            {{ variable.responsable?.prenom ? variable.responsable.prenom.charAt(0) : '' }}
-                                            {{ variable.responsable?.nom ? variable.responsable.nom.charAt(0) : '' }}
-                                        </div>
-                                        <span class="text-sm">{{ variable.responsable?.prenom }} {{ variable.responsable?.nom }}</span>
-                                    </div>
-                                </td>
-                                <td class="py-4">
-                                    <span
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                        [class]="getStatusColor(variable.status || '')">
-                                        {{ variable.status || 'Not Set' }}
-                                    </span>
-                                </td>
-                                <td class="py-4">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                            <div 
-                                                class="h-2 rounded-full transition-all duration-300"
-                                                [class]="getProgressColor(variable.progress || 0)"
-                                                [style.width.%]="variable.progress || 0"
-                                                [class.bg-current]="true">
-                                            </div>
-                                        </div>
-                                        <span class="text-sm font-medium min-w-10">
-                                            {{ variable.progress || 0 }}%
-                                        </span>
-                                    </div>
-                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            
+        </div>
+    </ng-container>
+
+    <ng-container>
+        <div class="flex-auto p-6 sm:px-10 mb-5">
             <!-- History & Activities Card -->
             <div class="bg-card rounded-2xl shadow p-6">
                 <div class="flex items-center mb-6">
@@ -275,10 +302,10 @@
                     <h3 class="text-lg font-semibold">History & Activities</h3>
                 </div>
                 <div class="space-y-4">
-                    <div *ngIf="!plan.auditLogs?.length" class="text-center py-8">
+                    <div *ngIf="!plan?.auditLogs?.length" class="text-center py-8">
                         <div class="text-secondary">No activity history available</div>
                     </div>
-                    <div *ngFor="let log of plan.auditLogs | slice:0:logsToShow" class="flex space-x-4">
+                    <div *ngFor="let log of plan?.auditLogs | slice:0:logsToShow" class="flex space-x-4">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
                                 {{ log.user.initials }}
@@ -313,217 +340,12 @@
                         </div>
                     </div>
                     <div class="text-center mt-4">
-                        <a *ngIf="plan.auditLogs?.length > logsToShow" class="text-blue-600 hover:underline cursor-pointer mr-4" (click)="viewAuditLogs()">Load More</a>
+                        <a *ngIf="plan?.auditLogs?.length > logsToShow" class="text-blue-600 hover:underline cursor-pointer mr-4" (click)="viewAuditLogs()">Load More</a>
                         <a *ngIf="logsToShow > 4" class="text-red-600 hover:underline cursor-pointer" (click)="collapseAuditLogs()">Collapse</a>
                     </div>
                 </div>
             </div>
         </div>
     </ng-container>
-    
-    <!-- Edit Mode Content -->
-    <ng-container *ngIf="!loading && isEditMode">
-        <div class="flex-auto p-6 sm:p-10">
-            <form [formGroup]="planForm" (ngSubmit)="onSubmit()" class="space-y-8">
-                <!-- Basic Information -->
-                <div class="bg-card rounded-2xl shadow p-6">
-                    <div class="flex items-center mb-6">
-                        <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
-                        <h3 class="text-lg font-semibold">Basic Information</h3>
-                    </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        
-                        <!-- Plan Title -->
-                        <mat-form-field class="lg:col-span-2">
-                            <mat-label>Plan Title</mat-label>
-                            <input matInput formControlName="titre" placeholder="Enter a descriptive title for your plan">
-                            <mat-error>{{getFieldError('titre')}}</mat-error>
-                            <mat-hint>A clear, concise title that describes the plan's objective</mat-hint>
-                        </mat-form-field>
-
-                        <!-- Exercise -->
-                        <mat-form-field>
-                            <mat-label>Exercise</mat-label>
-                            <mat-select formControlName="exerciceId">
-                                <mat-option *ngFor="let exercise of exercises" [value]="exercise.id">
-                                    {{exercise.annee}} - {{exercise.description}}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error>{{getFieldError('exerciceId')}}</mat-error>
-                        </mat-form-field>
-
-                        <!-- Due Date -->
-                        <mat-form-field>
-                            <mat-label>Due Date</mat-label>
-                            <input matInput [matDatepicker]="dueDatePicker" formControlName="dueDate">
-                            <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
-                            <mat-datepicker #dueDatePicker></mat-datepicker>
-                            <mat-hint>Target completion date</mat-hint>
-                        </mat-form-field>
-
-                        <!-- Description -->
-                        <mat-form-field class="lg:col-span-2">
-                            <mat-label>Description</mat-label>
-                            <textarea 
-                                matInput 
-                                formControlName="description" 
-                                rows="4"
-                                placeholder="Provide a detailed description of the action plan">
-                            </textarea>
-                            <mat-error>{{getFieldError('description')}}</mat-error>
-                            <mat-hint>Detailed explanation of the plan's objectives and scope</mat-hint>
-                        </mat-form-field>
-                    </div>
-                </div>
-
-                <!-- Variable Actions -->
-                <div class="bg-card rounded-2xl shadow p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center">
-                            <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:variable'"></mat-icon>
-                            <div>
-                                <h3 class="text-lg font-semibold">Action Variables</h3>
-                                <p class="text-sm text-secondary">Define measurable variables for this plan</p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            mat-flat-button
-                            color="primary"
-                            (click)="addVariableAction()">
-                            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
-                            <span class="ml-2">Add Variable</span>
-                        </button>
-                    </div>
-
-                    <!-- Weight validation warning -->
-                    <div 
-                        class="mb-4 p-4 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
-                        *ngIf="variableActions.length > 0 && !isWeightValid()">
-                        <div class="flex items-center">
-                            <mat-icon class="text-orange-600 mr-2" [svgIcon]="'heroicons_outline:exclamation-triangle'"></mat-icon>
-                            <span class="text-orange-800 dark:text-orange-200">
-                                Total weight must equal 1.0 (currently: {{getTotalWeight() | number:'1.2-2'}})
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Variables list -->
-                    <div class="space-y-4" formArrayName="variableActions">
-                        <div 
-                            *ngFor="let variableGroup of variableActions.controls; let i = index"
-                            class="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                            [formGroupName]="i">
-                            
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="font-medium">Variable {{i + 1}}</h4>
-                                <button
-                                    type="button"
-                                    mat-icon-button
-                                    color="warn"
-                                    (click)="removeVariableAction(i)"
-                                    matTooltip="Remove Variable">
-                                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
-                                </button>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                
-                                <!-- Description -->
-                                <mat-form-field class="md:col-span-2 lg:col-span-3">
-                                    <mat-label>Variable Description</mat-label>
-                                    <input matInput formControlName="description" 
-                                        placeholder="Describe what this variable measures">
-                                    <mat-error>{{getVariableFieldError(i, 'description')}}</mat-error>
-                                </mat-form-field>
-
-                                <!-- Weight -->
-                                <mat-form-field>
-                                    <mat-label>Weight</mat-label>
-                                    <input matInput type="number" formControlName="poids" 
-                                        step="0.1" min="0" max="1" placeholder="0.0 - 1.0">
-                                    <mat-error>{{getVariableFieldError(i, 'poids')}}</mat-error>
-                                    <mat-hint>Importance weight (0.0 - 1.0)</mat-hint>
-                                </mat-form-field>
-
-                                <!-- Level -->
-                                <mat-form-field>
-                                    <mat-label>Level</mat-label>
-                                    <mat-select formControlName="niveau">
-                                        <mat-option [value]="1">Level 1 (Primary)</mat-option>
-                                        <mat-option [value]="2">Level 2 (Secondary)</mat-option>
-                                        <mat-option [value]="3">Level 3 (Tertiary)</mat-option>
-                                    </mat-select>
-                                    <mat-error>{{getVariableFieldError(i, 'niveau')}}</mat-error>
-                                </mat-form-field>
-
-                                <!-- Responsible -->
-                                <mat-form-field>
-                                    <mat-label>Responsible Person</mat-label>
-                                    <mat-select formControlName="responsableId">
-                                        <mat-option *ngFor="let user of users" [value]="user.id">
-                                            {{user.prenom}} {{user.nom}}
-                                        </mat-option>
-                                    </mat-select>
-                                    <mat-error>{{getVariableFieldError(i, 'responsableId')}}</mat-error>
-                                </mat-form-field>
-
-                                <!-- Fixed checkbox -->
-                                <div class="flex items-center mt-4">
-                                    <mat-checkbox formControlName="fige">
-                                        Fixed Variable
-                                    </mat-checkbox>
-                                    <mat-icon 
-                                        class="ml-2 text-secondary"
-                                        matTooltip="Fixed variables cannot be modified once approved"
-                                        [svgIcon]="'heroicons_outline:lock-closed'">
-                                    </mat-icon>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Empty state -->
-                    <div 
-                        *ngIf="variableActions.length === 0"
-                        class="text-center py-12">
-                        <mat-icon 
-                            class="icon-size-16 text-hint mb-4"
-                            [svgIcon]="'heroicons_outline:variable'">
-                        </mat-icon>
-                        <div class="text-lg font-medium mb-2">No variables defined</div>
-                        <div class="text-secondary mb-4">Add action variables to make your plan measurable</div>
-                        <button
-                            type="button"
-                            mat-flat-button
-                            color="primary"
-                            (click)="addVariableAction()">
-                            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
-                            <span class="ml-2">Add First Variable</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Form Actions -->
-                <div class="flex items-center justify-end space-x-4 pt-6 border-t">
-                    <button
-                        type="button"
-                        mat-stroked-button
-                        (click)="cancelEdit()">
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        mat-flat-button
-                        color="primary"
-                        [disabled]="loading || planForm.invalid || !isWeightValid()">
-                        <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
-                        <mat-icon *ngIf="!loading" [svgIcon]="'heroicons_outline:check'"></mat-icon>
-                        <span class="ml-2">Save Changes</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </ng-container>
 </div>

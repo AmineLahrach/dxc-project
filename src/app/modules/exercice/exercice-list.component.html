@@ -23,7 +23,7 @@
         </div>
         
         <!-- Actions -->
-        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2" *ngIf="isDirector">
             <!-- Bulk actions -->
             <div class="flex items-center space-x-2" *ngIf="selectedExercises.length > 0">
                 <span class="text-sm text-secondary">{{selectedExercises.length}} selected</span>
@@ -63,14 +63,14 @@
             </mat-form-field>
             
             <!-- Lock status filter -->
-            <mat-form-field class="w-full sm:w-48">
+            <!-- <mat-form-field class="w-full sm:w-48">
                 <mat-label>Status</mat-label>
                 <mat-select [formControl]="statusFilter">
                     <mat-option value="all">All</mat-option>
                     <mat-option value="locked">Locked</mat-option>
                     <mat-option value="unlocked">Unlocked</mat-option>
                 </mat-select>
-            </mat-form-field>
+            </mat-form-field> -->
             
             <!-- Refresh button -->
             <button
@@ -92,23 +92,6 @@
             <!-- Table content -->
             <div *ngIf="!loading" class="overflow-x-auto">
                 <table mat-table [dataSource]="dataSource" matSort class="w-full">
-
-                    <!-- Selection column -->
-                    <ng-container matColumnDef="select">
-                        <th mat-header-cell *matHeaderCellDef class="w-12">
-                            <mat-checkbox
-                                [checked]="selectedExercises.length === dataSource.data.length"
-                                [indeterminate]="selectedExercises.length > 0 && selectedExercises.length < dataSource.data.length"
-                                (change)="$event.checked ? selectAll() : clearSelection()">
-                            </mat-checkbox>
-                        </th>
-                        <td mat-cell *matCellDef="let exercise" class="w-12" (click)="$event.stopPropagation()">
-                            <mat-checkbox
-                                [checked]="isSelected(exercise)"
-                                (change)="toggleSelection(exercise)">
-                            </mat-checkbox>
-                        </td>
-                    </ng-container>
 
                     <!-- Year column -->
                     <ng-container matColumnDef="annee">
@@ -147,14 +130,6 @@
                                     matTooltip="Edit Exercise"
                                     [routerLink]="['/exercises/edit', exercise.id]">
                                     <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
-                                </button>
-                                
-                                <!-- Lock/Unlock -->
-                                <button
-                                    mat-icon-button
-                                    [matTooltip]="exercise.verrouille ? 'Unlock Exercise' : 'Lock Exercise'"
-                                    (click)="toggleLock(exercise)">
-                                    <mat-icon [svgIcon]="exercise.verrouille ? 'heroicons_outline:lock-open' : 'heroicons_outline:lock-closed'"></mat-icon>
                                 </button>
                                 
                                 <!-- Delete -->

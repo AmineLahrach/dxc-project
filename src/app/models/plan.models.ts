@@ -4,6 +4,7 @@ export interface PlanAction {
   id?: number;
   titre: string;
   description: string;
+  verrouille: boolean;
   statut: ActionPlanStatus;
   exercice: Exercise;
   variableActions?: VariableAction[];
@@ -59,7 +60,8 @@ export interface PlanActionFilter {
 export interface PlanActionCreateRequest {
   titre: string;
   description: string;
-  exercice: { id: number };
+  verrouille: boolean;
+  exerciceId: number;
   statut?: ActionPlanStatus;
   variableActions?: VariableActionCreateRequest[];
 }

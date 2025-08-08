@@ -5,6 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 import { ExerciceService, Exercice, AuditLog } from './exercice.service';
 import { SharedModule } from '../shared/shared.module';
+import { AuthService } from 'app/core/auth/auth.service_bckup';
 
 @Component({
   selector: 'app-exercise-upsert',
@@ -20,7 +21,7 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
   currentYear = new Date().getFullYear();
   auditLogs: AuditLog[] = [];
   logsToShow = 4;
-
+  isDirector: boolean = false;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
   
   constructor(
@@ -28,8 +29,10 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
     private _exerciceService: ExerciceService,
     private _router: Router,
     private _route: ActivatedRoute,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private _authService: AuthService
   ) {
+    this.isDirector = this._authService.isDirector();
     this.exerciceForm = this.fb.group({
       id: [0],
       annee: [

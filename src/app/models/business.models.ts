@@ -34,8 +34,9 @@ export interface VariableAction {
   responsable: User;
   planAction: PlanAction;
   auditLogs?: AuditLog[];
-  responsableId?: number; // <-- Add this for form binding
-  planActionId?: number; // <-- Add this for form binding
+  responsableId?: number;
+  planActionId?: number;
+  vaMereId?: number | null; // Optional parent variable ID
 }
 
 export interface Exercise {

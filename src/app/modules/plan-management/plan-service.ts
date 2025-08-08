@@ -11,7 +11,7 @@ from 'app/models/plan.models';
 export class PlanService {
   private _plans: BehaviorSubject<PlanAction[]> = new BehaviorSubject([]);
   private _selectedPlan: BehaviorSubject<PlanAction | null> = new BehaviorSubject(null);
-
+  private apiUrl = `${environment.apiUrl}/plans`
   constructor(private _httpClient: HttpClient) {}
 
   get plans$(): Observable<PlanAction[]> {
@@ -58,8 +58,45 @@ export class PlanService {
       { headers: { 'Content-Type': 'application/json' } }
     );
   }
-  
+
+  updatePlanLockStatus(plan: PlanAction): Observable<PlanAction> {
+    return this._httpClient.patch<PlanAction>(
+      `${environment.apiUrl}/plans/${plan.id}/lock`,
+      { verrouille: plan.verrouille },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   getPlansForApproval(): Observable<PlanAction[]> {
     return this.getPlans({ status: [ActionPlanStatus.PLANNING] });
+  }
+
+  getAllPlans(): Observable<any[]> {
+    return this._httpClient.get<any[]>(this.apiUrl);
+  }
+
+  getTreeData(): Observable<any[]> {
+    return this._httpClient.get<any[]>(`${this.apiUrl}/tree`);
+  }
+
+  // getPlanById(id: number): Observable<any> {
+  //   return this._httpClient.get<any>(`${this.apiUrl}/${id}`);
+  // }
+
+  // createPlan(plan: any): Observable<any> {
+  //   return this._httpClient.post<any>(this.apiUrl, plan);
+  // }
+
+  // updatePlan(id: number, plan: any): Observable<any> {
+  //   return this._httpClient.put<any>(`${this.apiUrl}/${id}`, plan);
+  // }
+
+  // deletePlan(id: number): Observable<void> {
+  //   return this._httpClient.delete<void>(`${this.apiUrl}/${id}`);
+  // }
+
+  // Get plan with variable hierarchy
+  getPlanWithHierarchy(id: number): Observable<any> {
+    return this._httpClient.get<any>(`${this.apiUrl}/${id}/hierarchy`);
   }
 }

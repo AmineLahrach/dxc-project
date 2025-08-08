@@ -6,6 +6,7 @@ import { LayoutComponent } from 'app/layout/layout.component';
 import { RoleGuard } from './core/auth/guards/role.guard';
 import { RedirectToDashboardComponent } from './modules/dashboard/redirect-to-dashboard/redirect-to-dashboard';
 import { VariableListComponent } from './modules/variables/list/variable-list.component';
+import { PlanificationComponent } from './modules/planification/planification.component';
 
 export const appRoutes: Route[] = [
     {path: '', pathMatch : 'full', redirectTo: 'sign-in'},
@@ -62,6 +63,7 @@ export const appRoutes: Route[] = [
             {path: 'example', loadChildren: () => import('app/modules/admin/example/example.routes')},
             {path: 'user', loadChildren: () => import('app/modules/user-management/user-management.routes')},
             {path: 'plans', loadChildren: () => import('app/modules/plan-management/plan-management.routes')},
+            {path: 'planification', component: PlanificationComponent},
             {path: 'profiles', loadChildren: () => import('app/modules/profile-form/profile.routes')},
             {path: 'service-lines', loadChildren: () => import('app/modules/service-line/service-line.routes')},
             {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},

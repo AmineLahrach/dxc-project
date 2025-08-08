@@ -35,6 +35,8 @@ export class VariableService {
   private _variables: BehaviorSubject<VariableAction[]> = new BehaviorSubject([]);
   private _selectedVariable: BehaviorSubject<VariableAction | null> = new BehaviorSubject(null);
 
+  private apiUrl = `${environment.apiUrl}/variable-actions`
+
   constructor(private _httpClient: HttpClient) {}
 
   get variables$(): Observable<VariableAction[]> {
@@ -64,15 +66,14 @@ export class VariableService {
   }
 
   // Create new variable
-  createVariable(variable: any): Observable<VariableAction> {
-    
-    return this._httpClient.post<VariableAction>(`${environment.apiUrl}/variable-actions`, variable);
+  createVariable(variable: any) {
+    return this._httpClient.post(`${environment.apiUrl}/variable-actions`, variable);
   }
 
   // Update variable
-  updateVariable(id: number, variable: any): Observable<VariableAction> {
-    
-    return this._httpClient.put<VariableAction>(`${environment.apiUrl}/variable-actions/${id}`, variable);
+  updateVariable(id: number, variable: any) {
+
+    return this._httpClient.put(`${environment.apiUrl}/variable-actions/${id}`, variable);
   }
 
   // Delete variable
@@ -124,7 +125,7 @@ export class VariableService {
   }
 
   // Update variable progress
-  updateVariableProgress(id: number, progress: number): Observable<VariableAction> {
+  updateVariableProgress(id: number, progress: number){
     return this.updateVariable(id, { progress });
   }
 
@@ -144,5 +145,52 @@ export class VariableService {
     };
 
     return of(summary);
+  }
+
+  // Get hierarchical tree structure
+  getVariableActionHierarchy(planActionId?: number): Observable<any[]> {
+    const params = planActionId ? { planActionId: planActionId.toString() } : {};
+    return this._httpClient.get<any[]>(`${this.apiUrl}/hierarchy`, { params });
+  }
+
+  // Create variable action
+  createVariableAction(variableAction: any): Observable<any> {
+    return this._httpClient.post<any>(this.apiUrl, variableAction);
+  }
+
+  // Update variable action
+  updateVariableAction(id: number, variableAction: any): Observable<any> {
+    return this._httpClient.put<any>(`${this.apiUrl}/${id}`, variableAction);
+  }
+
+  // Delete variable action
+  deleteVariableAction(id: number): Observable<void> {
+    return this._httpClient.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Create child variable
+  createChildVariable(parentId: number, variableAction: any): Observable<any> {
+    return this._httpClient.post<any>(`${this.apiUrl}/${parentId}/children`, variableAction);
+  }
+
+  // Move variable to different parent
+  moveVariableAction(id: number, newParentId?: number): Observable<any> {
+    const params = newParentId ? { newParentId: newParentId.toString() } : {};
+    return this._httpClient.put<any>(`${this.apiUrl}/${id}/move`, {}, { params });
+  }
+
+  // Recalculate weights for parent
+  recalculateWeights(parentId: number): Observable<string> {
+    return this._httpClient.put<string>(`${this.apiUrl}/${parentId}/recalculate-weights`, {});
+  }
+
+  // Update fixed status
+  updateFige(id: number, fige: boolean): Observable<any> {
+    return this._httpClient.put<any>(`${this.apiUrl}/${id}/fige`, { fige });
+  }
+
+  // Get variable actions dropdown
+  getVariableActionsDropdown(planId: number): Observable<VariableAction[]> {
+    return this._httpClient.get<VariableAction[]>(`${this.apiUrl}/dropdown/${planId}`);
   }
 }

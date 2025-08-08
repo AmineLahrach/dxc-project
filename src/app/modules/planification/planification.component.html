@@ -1,0 +1,149 @@
+<!-- FIXED planification.component.html -->
+<div class="flex flex-col flex-auto min-w-0">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+    <div class="flex-1 min-w-0">
+      <!-- Breadcrumbs -->
+      <div class="flex flex-wrap items-center font-medium">
+        <div>
+          <a class="whitespace-nowrap text-primary-500" [routerLink]="['/dashboard/redirect-to-dashboard']">Home</a>
+        </div>
+        <div class="flex items-center ml-1 whitespace-nowrap">
+          <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+          <span class="ml-1 text-secondary">Planification</span>
+        </div>
+      </div>
+      <!-- Title -->
+      <div class="mt-2">
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+          Planification
+        </h2>
+        <p class="text-secondary">Manage action plans and their variable hierarchies</p>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+      <button
+        mat-icon-button
+        matTooltip="Refresh"
+        (click)="loadTreeData()">
+        <mat-icon [svgIcon]="'heroicons_outline:arrow-path'"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="flex-auto p-6 sm:p-10">
+    
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center items-center h-64">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+
+    <!-- Tree Structure -->
+    <div *ngIf="!loading" class="bg-card rounded-2xl shadow">
+      
+      <!-- Tree Header -->
+      <div class="p-6 border-b">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center">
+            <mat-icon class="text-primary mr-3" svgIcon="heroicons_outline:document-text"></mat-icon>
+            <div>
+              <h3 class="text-lg font-semibold">Action Plans & Variables</h3>
+              <p class="text-sm text-secondary mt-1">Click on action plans to view variables, click + to add child variables</p>
+            </div>
+          </div>
+          <button *ngIf="isDirector"
+            mat-flat-button
+            color="primary"
+            class="mt-4 sm:mt-0"
+            (click)="createPlan()">
+            <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
+            <span class="ml-2">Create Plan</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <p class="text-sm text-secondary">
+          Note: Variables can be nested up to 4 levels deep. Ensure to manage variable weights and responsibilities effectively.
+        </p>
+        
+        <mat-tree #tree [dataSource]="dataSourceNew" [childrenAccessor]="childrenAccessor" class="example-tree">
+          <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+            <li>
+            <div class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer group"
+                 [style.margin-left.px]="40">
+              <button matIconButton disabled></button>
+                            <span [class]="'font-medium text-primary cursor-pointer hover:underline'" 
+                    (click)="onNodeNameClick(node, $event)">{{node.name}}</span>
+              <!-- <span [class]="'font-medium ' + (node.nodeType === 'PLAN_ACTION' ? 'text-secondary' : 'text-primary cursor-pointer hover:underline')" 
+                    (click)="onNodeNameClick(node, $event)">{{node.name}}</span> -->
+              <mat-icon [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ? 'Weight: ' + node.poids + ' ' + node.description : node.description" class="text-primary ms-2" [style.font-size.px]="16">info_outline</mat-icon>
+                <button mat-icon-button *ngIf="!(node.nodeType === 'VARIABLE_ACTION' && node.fige)"
+                          [matTooltip]="node.nodeType 
+                      === 'VARIABLE_ACTION' ?'Add Variable' : 'Add Action Plan'"
+                          class="text-green-600 hover:bg-green-100"   
+                          (click)="addChildVariable(node, $event); $event.stopPropagation()">
+                <mat-icon class="icon-size-5 text-primary-500" [svgIcon]="'heroicons_outline:plus'"></mat-icon>                
+                </button>
+                <span *ngIf="node.nodeType === 'VARIABLE_ACTION' && node.fige" 
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                    <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+                    Fixed Variable
+                </span>
+            </div>
+            </li>
+          </mat-tree-node>
+          <mat-tree-node
+              *matTreeNodeDef="let node; when: hasChildNew" matTreeNodePadding
+              [cdkTreeNodeTypeaheadLabel]="node.name">
+              <li class="example-tree-container">
+                <div class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 group">
+                  <div class="mat-tree-node">
+                    <ul class="example-tree-nested-node">
+                      <button mat-icon-button matTreeNodeToggle
+                          [attr.aria-label]="'Toggle ' + node.name"
+                          class="text-green-600 hover:bg-green-100">
+                        <mat-icon class="mat-icon-rtl-mirror">
+                          {{tree.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                        </mat-icon>
+                      </button>
+                    </ul>
+                    <span [class]="'font-medium text-primary cursor-pointer hover:underline'"
+                          (click)="onNodeNameClick(node, $event)">{{node.name}}</span>
+                    <mat-icon 
+                      [matTooltip]="node.nodeType 
+                      === 'VARIABLE_ACTION' ?
+                      'Weight: ' + node.poids + ' ' + node.description 
+                      : node.description" 
+                      class="text-primary ms-2" 
+                      [style.font-size.px]="16">info_outline</mat-icon>
+                    <button mat-icon-button *ngIf="!(node.nodeType === 'VARIABLE_ACTION' && node.fige)"
+                            [matTooltip]="node.nodeType 
+                      === 'VARIABLE_ACTION' ?'Add Variable' : 'Add Action Plan'"
+                            class="text-green-600 hover:bg-green-100"
+                            (click)="addChildVariable(node, $event); $event.stopPropagation()">
+                      <mat-icon class="icon-size-5 text-primary-500" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+                  </button>
+                  <span *ngIf="node.nodeType === 'VARIABLE_ACTION' && node.fige" 
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+                      Fixed Variable
+                  </span>
+                  </div>
+                </div>
+              </li>
+            <div [class.example-tree-invisible]="!tree.isExpanded(node)"
+                role="group">
+              <ng-container matTreeNodeOutlet></ng-container>
+            </div>
+          </mat-tree-node>
+        </mat-tree>
+      </div>
+    </div>
+  </div>
+</div>
+

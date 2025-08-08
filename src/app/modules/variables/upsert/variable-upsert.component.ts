@@ -1,116 +1,75 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { VariableService } from '../variable-service';
 import { VariableAction } from 'app/models/business.models';
 import { SharedModule } from 'app/modules/shared/shared.module';
-import { UserService } from 'app/core/user/user.service';
-import { User } from 'app/models/auth.models';
-import { PlanService } from 'app/modules/plan-management/plan-service';
-import { PlanAction } from 'app/models/plan.models';
-import { VariableActionCreateRequest } from 'app/models/plan.models'
+import { VariableFormComponent } from '../variable-form/variable-form.component';
 
 @Component({
   selector: 'app-variable-upsert',
-  imports: [SharedModule, RouterModule],
-  templateUrl: './variable-upsert.component.html',
-  // styleUrls: ['./variable-upsert.component.scss']
+  imports: [SharedModule, RouterModule, VariableFormComponent],
+  standalone: true,
+  templateUrl: './variable-upsert.component.html'
 })
 export class VariableUpsertComponent implements OnInit {
-  variableForm: FormGroup;
+  variableId: number;
   variable: VariableAction;
   isEditMode: boolean = false;
-  users: User[] = [];
-  plans: PlanAction[] = []; // <-- Add this
-  auditLogs: any[] = [];
-  logsToShow = 4;
-
-  levelOptions = [
-    { value: 1, label: 'Level 1 (Primary)' },
-    { value: 2, label: 'Level 2 (Secondary)' },
-    { value: 3, label: 'Level 3 (Tertiary)' }
-  ];
-
+  isFormValid: boolean = false;
+  
+  @ViewChild(VariableFormComponent) variableForm: VariableFormComponent;
+  
   constructor(
-    private fb: FormBuilder,
     private variableService: VariableService,
     private route: ActivatedRoute,
-    public router: Router,
-    private userService: UserService,
-    private planService: PlanService
-  ) {
-    this.variableForm = this.fb.group({
-      description: ['', Validators.required],
-      poids: [0, [Validators.required, Validators.min(0)]],
-      niveau: ['', Validators.required],
-      responsable_id: ['', Validators.required],
-      plan_action_id: ['', Validators.required]
-    });
-  }
-
+    public router: Router
+  ) {}
+  
   ngOnInit(): void {
-    this.userService.getUsers().subscribe(users => {
-      this.users = users;
-    });
-
-    this.planService.getPlans().subscribe(plans => {
-      this.plans = plans;
-    });
-
-    const variableId: number = Number(this.route.snapshot.paramMap.get('id'));
-    if (variableId) {
+    this.variableId = Number(this.route.snapshot.paramMap.get('id'));
+    if (this.variableId) {
       this.isEditMode = true;
-      this.loadVariable(variableId);
     }
   }
 
-  loadVariable(id: number): void {
-    this.variableService.getVariableByIdForEdit(id).subscribe(variable => {
-      this.variable = variable;
-      this.variableForm.patchValue({
-        description: variable.description,
-        poids: variable.poids,
-        niveau: variable.niveau,
-        responsable_id: variable.responsableId, // <-- use correct property
-        plan_action_id: variable.planActionId   // <-- use correct property
+  // New method to trigger form submission from the header button
+  triggerFormSubmit(): void {
+    if (this.variableForm) {
+      this.variableForm.submitForm();
+    }
+  }
+
+  onFormSubmit(variableData: any): void {
+    if (!variableData) {
+      return; // Prevent submitting null data
+    }
+    
+    if (this.isEditMode) {
+      this.variableService.updateVariable(this.variableId, variableData).subscribe({
+        next: (RE) => {
+          this.router.navigate(['/variables']);
+        },
+        error: (err) => {
+          console.error('Error updating variable:', err);
+        }
       });
-      this.auditLogs = variable.auditLogs ?? [];
-    });
-  }
-
-  onSubmit(): void {
-    if (this.variableForm.valid) {
-      const formValue = this.variableForm.value;
-      const variableData = {
-        description: formValue.description,
-        poids: formValue.poids,
-        niveau: formValue.niveau,
-        responsable: { id: formValue.responsable_id },
-        planAction: { id: formValue.plan_action_id }
-      };
-      if (this.isEditMode) {
-        this.variableService.updateVariable(this.variable.id, variableData).subscribe(() => {
+    } else {
+      this.variableService.createVariable(variableData).subscribe({
+        next: () => {
           this.router.navigate(['/variables']);
-        });
-      } else {
-        this.variableService.createVariable(variableData).subscribe(() => {
-          this.router.navigate(['/variables']);
-        });
-      }
+        },
+        error: (err) => {
+          console.error('Error creating variable:', err);
+        }
+      });
     }
   }
 
-  viewAuditLogs() {
-    if (this.auditLogs.length > this.logsToShow) {
-      this.logsToShow += 4;
-    }
+  onFormCancel(): void {
+    this.router.navigate(['/variables']);
   }
 
-  collapseAuditLogs() {
-    this.logsToShow = 4;
-  }
-
-  get formControls() {
-    return this.variableForm.controls;
+  onFormValidityChange(isValid: boolean): void {
+    this.isFormValid = isValid;
   }
 }

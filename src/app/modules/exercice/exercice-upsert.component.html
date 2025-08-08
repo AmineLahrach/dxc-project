@@ -18,7 +18,7 @@
                 </div>
             </div>
             <!-- Title -->
-            <div class="mt-2">
+            <div class="mt-2" *ngIf="isDirector">
                 <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
                     {{isEditMode ? 'Edit Exercise' : 'Create Exercise'}}
                 </h2>
@@ -67,7 +67,7 @@
                     </mat-form-field>
 
                     <!-- Status -->
-                    <div class="flex items-center md:justify-start">
+                    <!-- <div class="flex items-center md:justify-start">
                         <mat-checkbox formControlName="verrouille" color="primary">
                             Locked
                         </mat-checkbox>
@@ -76,7 +76,7 @@
                             matTooltip="Locked exercises cannot have new plans created"
                             [svgIcon]="'heroicons_outline:information-circle'">
                         </mat-icon>
-                    </div>
+                    </div> -->
                 </div>
                 
                 <div class="mt-6">

@@ -5,11 +5,12 @@ import { finalize, forkJoin, Subject, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
 import { UserService } from "app/core/user/user.service";
 import { User } from "app/core/user/user.types";
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
     selector: 'app-admin-dashboard',
     templateUrl: './admin-dashboard.component.html',
-    imports: [SharedModule],
+    imports: [SharedModule, MatTooltipModule],
     standalone: true
 })
 export class AdminDashboardComponent implements OnInit {
@@ -91,5 +92,9 @@ export class AdminDashboardComponent implements OnInit {
 
     collapseAuditLogs() {
         this.logsToShow = 3;
+    }
+
+    navigateTo(route: string): void {
+        this.router.navigate([route]);
     }
 }
