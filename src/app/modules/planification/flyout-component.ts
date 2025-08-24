@@ -30,6 +30,7 @@ import { PlanFormComponent } from '../plan-management/plan-form/plan-form.compon
         <ng-container *ngIf="data.component === variableFormComponentType">
           <app-variable-form
             [variableId]="data.inputs.variableId || null"
+            [planActionId]="data.inputs?.variable?.planActionId || null"
             [isEditMode]="data.inputs.isEditMode || false"
             (formSubmit)="onFormSubmit($event)"
             (formCancel)="onFormCancel()">

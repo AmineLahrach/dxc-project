@@ -1,0 +1,156 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div
+        class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500"
+                        [routerLink]="['/dashboard/redirect-to-dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Notifications</span>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="mt-2">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
+                    Notifications
+                </h2>
+                <p class="text-secondary">System Alerts</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex shrink-0 items-center mt-6 sm:mt-0 sm:ml-4 space-x-2">
+
+            <button mat-flat-button color="primary" (click)="markAllAsRead()">
+                <mat-icon [svgIcon]="'mat_outline:mark_chat_read'"></mat-icon>
+                <span class="ml-2">Mark all as read</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+
+        <!-- Table -->
+        <div class="bg-card rounded-2xl shadow overflow-hidden">
+
+            <!-- Loading -->
+            <div *ngIf="loading" class="flex justify-center items-center h-64">
+                <mat-spinner diameter="48"></mat-spinner>
+            </div>
+
+            <!-- Table content -->
+            <div *ngIf="!loading" class="overflow-x-auto">
+                <table mat-table [dataSource]="dataSource" matSort class="w-full">
+
+                    <!-- Title column -->
+                    <ng-container matColumnDef="title">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Title
+                        </th>
+                        <td mat-cell *matCellDef="let alert">
+                            <div class="flex flex-col">
+                                <span class="text-sm" [class]="alert.recu ? 'font-normal': 'font-bold'">
+                                    {{alert.titre}}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Content column -->
+                    <ng-container matColumnDef="content">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Content
+                        </th>
+                        <td mat-cell *matCellDef="let alert">
+                            <div class="flex flex-col">
+                                <span class="text-sm" [class]="alert.recu ? 'font-normal': 'font-bold'">
+                                    {{alert.contenu}}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+
+                    <!-- Time column -->
+                    <ng-container matColumnDef="time">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Date & Time
+                        </th>
+                        <td mat-cell *matCellDef="let alert">
+                            <span class="text-sm" [class]="alert.recu ? 'font-normal': 'font-bold'">
+                                {{alert.date | date: 'MMM dd, h:mm a' }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <!-- Type column -->
+                    <ng-container matColumnDef="type">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header class="font-semibold">
+                            Type
+                        </th>
+                        <td mat-cell *matCellDef="let alert">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                [class]="getTypeColor(alert.type)">
+                                <mat-icon [svgIcon]="getTypeIcon(alert.type)"></mat-icon>
+                            </span>
+                        </td>
+                    </ng-container>
+
+
+                    <!-- Actions column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="font-semibold">
+                            Actions
+                        </th>
+                        <td mat-cell *matCellDef="let alert">
+                            <div class="flex items-center space-x-1">
+
+                                <!-- Mark as unread -->
+                                <button *ngIf="alert.recu" matTooltip="Mark as unread"
+                                (click)="markAsUnread(alert.id)">
+                                    <mat-icon 
+                                    [svgIcon]="'mat_outline:mark_chat_unread'"></mat-icon>
+                                </button>
+
+                                <!-- Mark as read -->
+                                <button *ngIf="!alert.recu" matTooltip="Mark as read" 
+                                    (click)="markAsRead(alert.id)">
+                                    <mat-icon 
+                                    class="text-primary-700"
+                                    [svgIcon]="'mat_outline:mark_chat_read'"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Header and rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let variable; columns: displayedColumns;"
+                        class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <mat-paginator
+                [pageSize]="100" 
+                [showFirstLastButtons]="false">
+            </mat-paginator>
+
+            <!-- Empty state -->
+            <div *ngIf="!loading && dataSource.data.length === 0"
+                class="flex flex-col items-center justify-center py-16">
+                <mat-icon class="icon-size-24 text-hint mb-4" [svgIcon]="'heroicons_outline:bell'">
+                </mat-icon>
+                <div class="text-2xl font-semibold mb-2">No notification found</div>
+
+            </div>
+        </div>
+    </div>

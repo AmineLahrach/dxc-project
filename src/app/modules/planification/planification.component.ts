@@ -78,8 +78,8 @@ export class PlanificationComponent implements OnInit, OnDestroy { // Add OnDest
     private flyoutService: FlyoutService,
     private _authService: AuthService
   ) {
-    // this.isDirector = this._authService.isDirector();
-    this.isDirector = true;
+    this.isDirector = this._authService.isDirector();
+    // this.isDirector = true;
   }
 
   ngOnInit() {
@@ -160,18 +160,18 @@ export class PlanificationComponent implements OnInit, OnDestroy { // Add OnDest
       event.stopPropagation();
     }
     
-    // console.log('Add child variable clicked for:', parentNode);
+    // Check if the user has permission to add children to this node
+    if (!this.canAddChildren(currentNode)) {
+      if (currentNode.nodeType === 'VARIABLE_ACTION' && currentNode.fige) {
+        this.snackBar.open('Cannot add children to fixed variables', 'Close', { duration: 3000 });
+      } else if (currentNode.nodeType === 'PLAN_ACTION' && !this.isDirector) {
+        this.snackBar.open('Only directors can add children to plans', 'Close', { duration: 3000 });
+      } else if (currentNode.nodeType === 'VARIABLE_ACTION' && this.isDirector) {
+        this.snackBar.open('Only collaborators can add children to variables', 'Close', { duration: 3000 });
+      }
+      return;
+    }
     
-    // if (parentNode && parentNode.fige) {
-    //   this.snackBar.open('Cannot add children to fixed variables', 'Close', { duration: 3000 });
-    //   return;
-    // }
-
-    // if (parentNode && parentNode.niveau >= 4) {
-    //   this.snackBar.open('Maximum nesting level reached', 'Close', { duration: 3000 });
-    //   return;
-    // }
-
     // Get plan ID - either from parent node or from the clicked plan
     let planId: number;
     let variableId: number;
@@ -179,9 +179,9 @@ export class PlanificationComponent implements OnInit, OnDestroy { // Add OnDest
       planId = currentNode.planActionId;
       variableId = null;
     }
-    else{      
-        planId = currentNode.planActionId;
-        variableId = currentNode.id
+    else {      
+      planId = currentNode.planActionId;
+      variableId = currentNode.id;
     }
 
     // Use flyout with VariableFormComponent
@@ -326,6 +326,11 @@ export class PlanificationComponent implements OnInit, OnDestroy { // Add OnDest
   onNodeNameClick(node: any, event: Event): void {
     event.stopPropagation();
     
+    // Only proceed if the user has permission to edit this node
+    if (!this.canEditNode(node)) {
+      return;
+    }
+    
     if (node.nodeType === 'VARIABLE_ACTION') {
       this.editVariable(node, event);
     } else {
@@ -375,6 +380,54 @@ export class PlanificationComponent implements OnInit, OnDestroy { // Add OnDest
           });
       }
     });
+  }
+
+  // Helper methods for permission checks
+  canAddChildren(node: any): boolean {
+    // Can't add children to fixed variables
+    if (node.nodeType === 'VARIABLE_ACTION' && node.fige) {
+      return false;
+    }
+    
+    // Only directors can add children to plan actions
+    if (node.nodeType === 'PLAN_ACTION') {
+      return this.isDirector;
+    }
+    
+    // Only collaborators can add children to variable actions
+    if (node.nodeType === 'VARIABLE_ACTION') {
+      if(!this.isDirector) {
+        return node.owner;
+      }
+    }
+    
+    return false;
+  }
+
+  canEditNode(node: any): boolean {
+    // Directors can only edit plan actions
+    if (this.isDirector && node.nodeType === 'PLAN_ACTION') {
+      return true;
+    }
+    
+    // Collaborators can only edit variable actions
+    if (!this.isDirector && node.nodeType === 'VARIABLE_ACTION') {
+      return true;
+    }
+    
+    return false;
+  }
+
+  getNodeNameClass(node: any): string {
+    const baseClass = 'font-medium ';
+    
+    // If the user can edit this node, make it clickable
+    if (this.canEditNode(node)) {
+      return baseClass + 'text-primary cursor-pointer hover:underline';
+    }
+    
+    // Otherwise just display it as plain text
+    return baseClass + 'text-secondary';
   }
 
   // Add ngOnDestroy lifecycle hook to clean up subscriptions

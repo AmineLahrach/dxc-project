@@ -82,4 +82,7 @@ export class UserService {
   bulkDeleteUsers(ids: string[]): Observable<any> {
     return this._httpClient.post<any>(`${this._apiUrl}/bulk-delete`, { ids });
   }
+  updateUserProfile(id: string, user: Partial<User>): Observable<User> {
+        return this._httpClient.put<User>(`${this._apiUrl}/${id}/profile`, user);
+    }
 }
