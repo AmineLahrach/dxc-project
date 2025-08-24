@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from '../auth.service';
+import { Observable, of, map } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -12,21 +14,27 @@ export class RoleGuard implements CanActivate {
     private _router: Router
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const requiredRoles = route.data['roles'] as string[];
-    
     if (!requiredRoles || requiredRoles.length === 0) {
-      return true;
+      of(true);
     }
 
-    const hasRole = requiredRoles.some(role => this._authService.hasRole(role));
-    
-    if (!hasRole) {
-      // Redirect to signout instead of dashboard
-      this._router.navigate(['/sign-out']);
-      return false;
-    }
+    return this._authService.currentUser$.pipe(
+      map(user => {
+        if (!user) {
+          this._router.navigate(['/sign-out']);
+          return false;
+        }
 
-    return true;
+        const hasRole = requiredRoles.some(role => user.roles?.includes(role));
+        if (!hasRole) {
+          this._router.navigate(['/sign-out']);
+          return false;
+        }
+
+        return true;
+      })
+    );
   }
 }

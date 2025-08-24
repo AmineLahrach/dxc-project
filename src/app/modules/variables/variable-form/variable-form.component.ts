@@ -16,6 +16,7 @@ import { VariableService } from '../variable-service';
 })
 export class VariableFormComponent implements OnInit, OnChanges {
   @Input() variableId: number;
+  @Input() planActionId: number;
   @Input() isEditMode: boolean = false;
   @Output() formSubmit = new EventEmitter<any>();
   @Output() formCancel = new EventEmitter<void>();
@@ -50,12 +51,13 @@ export class VariableFormComponent implements OnInit, OnChanges {
       fige: [false],
       niveau: [''],
       responsable_id: ['', Validators.required],
-      plan_action_id: ['', Validators.required],
+      plan_action_id: [{ value: '' }, Validators.required],
       va_mere_id: ['']
     });
   }
   
   ngOnInit(): void {
+    
     this.userService.getUsers().subscribe(users => {
       this.users = users;
     });
@@ -63,6 +65,11 @@ export class VariableFormComponent implements OnInit, OnChanges {
     this.planService.getPlans().subscribe(plans => {
       this.plans = plans;
     });
+
+    if(this.planActionId){
+      this.variableForm.get('plan_action_id').setValue(this.planActionId)
+      this.variableForm.get('plan_action_id').disable();
+    }
 
     // Add event listener for plan action changes
     this.variableForm.get('plan_action_id').valueChanges.subscribe(planId => {
@@ -89,7 +96,6 @@ export class VariableFormComponent implements OnInit, OnChanges {
       this.auditLogs = variableId.auditLogs ?? [];
         this.loadVariable(variableId);
       
-
       if (variableId.planActionId) {
         this.loadVariableActions(variableId.planActionId);
       }
@@ -119,7 +125,7 @@ export class VariableFormComponent implements OnInit, OnChanges {
 
   onSubmit(): void {
     if (this.variableForm.valid) {
-      const formValue = this.variableForm.value;
+      const formValue = this.variableForm.getRawValue();
       const variableData = {
         description: formValue.description,
         poids: formValue.poids,

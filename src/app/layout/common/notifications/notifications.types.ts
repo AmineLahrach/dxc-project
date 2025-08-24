@@ -1,11 +1,22 @@
 export interface Notification {
-    id: string;
-    icon?: string;
+    id: Number;
+    oldId: string;
+    type?: string;
     image?: string;
-    title?: string;
-    description?: string;
-    time: string;
+    titre?: string;
+    contenu?: string;
+    date: string;
     link?: string;
     useRouter?: boolean;
-    read: boolean;
+    recu: boolean;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }

@@ -1,0 +1,96 @@
+<div class="flex flex-col flex-auto min-w-0">
+
+    <!-- Header -->
+    <div
+        class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
+        <div class="flex-1 min-w-0">
+            <!-- Breadcrumbs -->
+            <div class="flex flex-wrap items-center font-medium">
+                <div>
+                    <a class="whitespace-nowrap text-primary-500"
+                        [routerLink]="['/dashboard/redirect-to-dashboard']">Home</a>
+                </div>
+                <div class="flex items-center ml-1 whitespace-nowrap">
+                    <mat-icon class="icon-size-5 text-secondary" svgIcon="heroicons_mini:chevron-right"></mat-icon>
+                    <span class="ml-1 text-secondary">Account Settings</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-auto p-6 sm:p-10">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+            <div class="bg-card rounded-2xl shadow p-6">
+                <div class="flex items-center mb-6">
+                    <mat-icon class="text-primary mr-3" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+                    <h3 class="text-lg font-semibold">User Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Email -->
+                    <mat-form-field>
+                        <mat-label>Email</mat-label>
+                        <input matInput formControlName="email" placeholder="Enter email address" type="email">
+                        <mat-error>{{ getErrorMessage('email') }}</mat-error>
+                    </mat-form-field>
+
+                    <!-- Username -->
+                    <mat-form-field>
+                        <mat-label>Username</mat-label>
+                        <input matInput formControlName="username" placeholder="Enter username">
+                        <mat-error>{{ getErrorMessage('username') }}</mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="bg-card rounded-2xl shadow p-6 mt-8">
+                <div class="flex items-center mb-6">
+                    <mat-icon class="text-primary mr-3" svgIcon="heroicons_outline:lock-closed"></mat-icon>
+                    <h3 class="text-lg font-semibold">Update Password</h3>
+                </div>
+
+                <!-- Inline Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <!-- Current Password -->
+                    <mat-form-field class="w-full">
+                        <mat-label>Current Password</mat-label>
+                        <input matInput type="password" formControlName="currentPassword"
+                            placeholder="Enter current password" autocomplete="off"/>
+                        <button mat-icon-button matSuffix type="button" (click)="togglePasswordUpdate()">
+                            <mat-icon>{{ showPasswordUpdate ? 'close' : 'edit' }}</mat-icon>
+                        </button>
+                        <mat-error>{{ getErrorMessage('currentPassword') }}</mat-error>
+                    </mat-form-field>
+
+                    <!-- New Password -->
+                    <mat-form-field *ngIf="showPasswordUpdate" class="w-full">
+                        <mat-label>New Password</mat-label>
+                        <input matInput type="password" formControlName="newPassword"
+                            placeholder="Enter new password" autocomplete="off"/>
+                        <mat-error>{{ getErrorMessage('newPassword') }}</mat-error>
+                    </mat-form-field>
+
+                    <!-- Confirm Password -->
+                    <mat-form-field *ngIf="showPasswordUpdate" class="w-full">
+                        <mat-label>Confirm Password</mat-label>
+                        <input matInput type="password" formControlName="confirmPassword"
+                            placeholder="Confirm new password" autocomplete="off"/>
+                        <mat-error>{{ getErrorMessage('confirmPassword') }}</mat-error>
+                    
+
+                    </mat-form-field>
+                </div>
+            </div>
+            
+            <!-- Submit and cancel buttons -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t">
+                <button type="button" mat-stroked-button (click)="cancel()">
+                    Cancel
+                </button>
+                <button type="submit" mat-flat-button color="primary" [disabled]="loading || userForm.invalid">
+                    <mat-spinner *ngIf="loading" [diameter]="20" class="mr-2"></mat-spinner>
+                    <span>Update User</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

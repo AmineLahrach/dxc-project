@@ -31,6 +31,7 @@ export interface User {
   updatedAt: string;
   avatar?: string; // Add this
   status?: 'online' | 'away' | 'busy' | 'not-visible'; // Add this
+  refreshToken?: string;
 }
 
 export interface SignupRequest {

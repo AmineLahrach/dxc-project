@@ -57,17 +57,43 @@ export const appRoutes: Route[] = [
             {
                 path: 'dashboard',
                 loadChildren: () => import('./modules/dashboard/dashboard.routes'),
-                // canActivate: [AuthGuard, RoleGuard],
-                // data: { roles: ['COLLABORATOR'] }
             },
             {path: 'example', loadChildren: () => import('app/modules/admin/example/example.routes')},
             {path: 'user', loadChildren: () => import('app/modules/user-management/user-management.routes')},
-            {path: 'plans', loadChildren: () => import('app/modules/plan-management/plan-management.routes')},
-            {path: 'planification', component: PlanificationComponent},
+            {
+                path: 'plans', 
+                loadChildren: () => import('app/modules/plan-management/plan-management.routes'),
+                canActivate: [AuthGuard, RoleGuard],
+                data: { roles: ['COLLABORATEUR', 'DIRECTEUR_GENERAL']}
+            },
+            {
+                path: 'planification', 
+                component: PlanificationComponent,
+                canActivate: [AuthGuard, RoleGuard],
+                data: { roles: ['COLLABORATEUR', 'DIRECTEUR_GENERAL']}
+            },
             {path: 'profiles', loadChildren: () => import('app/modules/profile-form/profile.routes')},
             {path: 'service-lines', loadChildren: () => import('app/modules/service-line/service-line.routes')},
-            {path: 'exercises', loadChildren: () => import('app/modules/exercice/exercice.routes')},
-            {path: 'variables', loadChildren: () => import('app/modules/variables/variable-routes')}
+            {
+                path: 'exercises', 
+                loadChildren: () => import('app/modules/exercice/exercice.routes'),
+                canActivate: [AuthGuard, RoleGuard],
+                data: { roles: ['COLLABORATEUR', 'DIRECTEUR_GENERAL'] }
+            },
+            {
+                path: 'variables', 
+                loadChildren: () => import('app/modules/variables/variable-routes'),
+                canActivate: [AuthGuard, RoleGuard],
+                data: { roles: ['COLLABORATEUR', 'DIRECTEUR_GENERAL'] }
+            },
+            {
+                path: 'account-settings', 
+                loadChildren: () => import('app/modules/account/account.routes')
+            },
+            {
+                path: 'alerts', 
+                loadChildren: () => import('app/modules/alerts/alerts.routes')
+            }
         ]
     },
     // {

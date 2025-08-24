@@ -17,6 +17,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
+import { RecaptchaModule, RECAPTCHA_SETTINGS, RecaptchaSettings } from 'ng-recaptcha';
+import { environment } from 'environments/environment';
+
 
 @Component({
     selector: 'auth-sign-in',
@@ -34,7 +37,16 @@ import { AuthService } from 'app/core/auth/auth.service';
         MatIconModule,
         MatCheckboxModule,
         MatProgressSpinnerModule,
+        RecaptchaModule
     ],
+    providers: [
+    {
+      provide: RECAPTCHA_SETTINGS,
+      useValue: {
+        siteKey: environment.recaptcha.siteKey,
+      } as RecaptchaSettings,
+    },
+  ],
 })
 export class AuthSignInComponent implements OnInit {
     @ViewChild('signInNgForm') signInNgForm: NgForm;
@@ -72,6 +84,7 @@ export class AuthSignInComponent implements OnInit {
             ],
             motDePasse: ['admin', Validators.required],
             rememberMe: [''],
+            recaptcha: ['', Validators.required]
         });
     }
 
@@ -134,5 +147,9 @@ export class AuthSignInComponent implements OnInit {
                 this.showAlert = true;
             }
         );
+    }
+
+    onCaptchaResolved(token: string | null) {
+        this.signInForm.patchValue({ recaptcha: token });
     }
 }

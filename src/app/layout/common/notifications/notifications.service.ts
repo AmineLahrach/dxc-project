@@ -1,48 +1,23 @@
 import { Injectable } from '@angular/core';
-import { Notification } from 'app/layout/common/notifications/notifications.types';
-import { map, Observable, ReplaySubject, of, switchMap, take, tap } from 'rxjs';
+import { Notification, Page } from 'app/layout/common/notifications/notifications.types';
+import { map, Observable, ReplaySubject, of, switchMap, take, tap, BehaviorSubject, interval } from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
-    private _notifications: ReplaySubject<Notification[]> = new ReplaySubject<
-        Notification[]
-    >(1);
 
-    // Static notifications data
-    private _notificationsData: Notification[] = [
-        {
-            id: '493190c9-5b61-4912-afe5-78c21f1044d7',
-            icon: 'heroicons_outline:check-circle',
-            title: 'Daily challenges',
-            description: 'Your submission has been accepted',
-            time: '2023-05-25T13:00:00.000Z',
-            read: false,
-        },
-        {
-            id: '6e3e97e5-effc-4fb7-b730-52a151f0b641',
-            image: 'images/avatars/male-04.jpg',
-            description: 'Static notification example',
-            time: '2023-05-26T15:30:00.000Z',
-            read: true,
-            link: '/dashboards/project',
-            useRouter: true,
-        },
-        {
-            id: '4cf56428-f9c4-44d4-9be2-a4b85e12b4a6',
-            icon: 'heroicons_outline:exclamation',
-            title: 'Attention required',
-            description: 'Your project needs your attention',
-            time: '2023-05-26T08:25:00.000Z',
-            read: false,
-        },
-    ];
+    private _notifications = new BehaviorSubject<Notification[]>([]);
+    notifications$: Observable<Notification[]> = this._notifications.asObservable();
 
-    /**
-     * Constructor
-     */
-    constructor() {
-        // Initialize with static data
-        this._notifications.next(this._notificationsData);
+    private _unreadCount = new BehaviorSubject<number>(0);
+    unreadCount$ = this._unreadCount.asObservable();
+
+    private apiUrl = `${environment.apiUrl}/notification`;
+
+    constructor(private http: HttpClient) { 
+        this.startUnreadCountPolling();
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -52,8 +27,8 @@ export class NotificationsService {
     /**
      * Getter for notifications
      */
-    get notifications$(): Observable<Notification[]> {
-        return this._notifications.asObservable();
+    private get notifications(): Notification[] {
+        return this._notifications.value;
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -63,11 +38,34 @@ export class NotificationsService {
     /**
      * Get all notifications
      */
-    getAll(): Observable<Notification[]> {
-        // Return static data instead of HTTP call
-        return of(this._notificationsData).pipe(
-            tap((notifications) => {
+    getAllUnread(): Observable<Notification[]> {
+        return this.http.get<Notification[]>(this.apiUrl + '/all-unread');
+    }
+
+    private fetchUnreadCount() {
+        return this.http.get<number>(`${this.apiUrl}/unread-count`);
+    }
+
+    private startUnreadCountPolling() {
+        interval(30000) // 30 seconds
+        .pipe(switchMap(() => this.fetchUnreadCount()))
+        .subscribe(count => {
+            this._unreadCount.next(count);
+        });
+    }
+
+    getAll(page: number = 0, size: number = 10): Observable<Notification[]> {
+        let params = new HttpParams()
+            .set('page', page.toString())
+            .set('size', size.toString());
+        
+        return this.http.get<Page<Notification>>(this.apiUrl + '/all', { params }).pipe(
+            map((response: Page<Notification>) => response.content),
+            tap((notifications: Notification[]) => {
                 this._notifications.next(notifications);
+
+                const unreadCount = notifications.filter(n => !n.recu).length;
+                this._unreadCount.next(unreadCount);
             })
         );
     }
@@ -84,14 +82,14 @@ export class NotificationsService {
                 // Create a new notification with a unique ID
                 const newNotification = {
                     ...notification,
-                    id: this._generateUniqueId(),
+                    oldId: this._generateUniqueId(),
                 };
 
-                // Update local data
-                this._notificationsData = [...this._notificationsData, newNotification];
+                // // Update local data
+                // this._notificationsData = [...this._notificationsData, newNotification];
 
-                // Update the notifications
-                this._notifications.next(this._notificationsData);
+                // // Update the notifications
+                // this._notifications.next(this._notificationsData);
 
                 // Return the new notification
                 return of(newNotification);
@@ -110,27 +108,27 @@ export class NotificationsService {
             take(1),
             switchMap((notifications) => {
                 // Find the index of the notification
-                const index = this._notificationsData.findIndex(
-                    (item) => item.id === id
-                );
+                // const index = this._notificationsData.findIndex(
+                //     (item) => item.id === id
+                // );
 
-                if (index === -1) {
-                    return of(null);
-                }
+                // if (index === -1) {
+                //     return of(null);
+                // }
 
-                // Update the notification
-                const updatedNotification = {
-                    ...this._notificationsData[index],
-                    ...notification,
-                };
+                // // Update the notification
+                // const updatedNotification = {
+                //     ...this._notificationsData[index],
+                //     ...notification,
+                // };
 
-                this._notificationsData[index] = updatedNotification;
+                // this._notificationsData[index] = updatedNotification;
 
-                // Update notifications
-                this._notifications.next([...this._notificationsData]);
+                // // Update notifications
+                // this._notifications.next([...this._notificationsData]);
 
                 // Return the updated notification
-                return of(updatedNotification);
+                return of(null);
             })
         );
     }
@@ -145,19 +143,19 @@ export class NotificationsService {
             take(1),
             switchMap((notifications) => {
                 // Find the index of the deleted notification
-                const index = this._notificationsData.findIndex(
-                    (item) => item.id === id
-                );
+                // const index = this._notificationsData.findIndex(
+                //     (item) => item.id === id
+                // );
 
-                if (index === -1) {
-                    return of(false);
-                }
+                // if (index === -1) {
+                //     return of(false);
+                // }
 
-                // Delete the notification
-                this._notificationsData.splice(index, 1);
+                // // Delete the notification
+                // this._notificationsData.splice(index, 1);
 
-                // Update the notifications
-                this._notifications.next([...this._notificationsData]);
+                // // Update the notifications
+                // this._notifications.next([...this._notificationsData]);
 
                 // Return the deleted status
                 return of(true);
@@ -169,20 +167,46 @@ export class NotificationsService {
      * Mark all notifications as read
      */
     markAllAsRead(): Observable<boolean> {
-        return this.notifications$.pipe(
-            take(1),
-            map((notifications) => {
-                // Go through all notifications and set them as read
-                this._notificationsData = this._notificationsData.map((notification) => ({
-                    ...notification,
-                    read: true,
-                }));
+        return this.http.put<any>(this.apiUrl + '/read-all', {}).pipe(
+            tap(() => {
+                const updated = this.notifications.map(n =>
+                    !n.recu ? { ...n, recu: true } : n
+                );
+                this._notifications.next(updated);
+                const unreadCount = updated.filter(n => !n.recu).length;
+                this._unreadCount.next(unreadCount);
+            })
+        )
+    }
 
-                // Update the notifications
-                this._notifications.next([...this._notificationsData]);
+    /**
+     * Mark notifications as read
+     */
+    markAsRead(notificationId: Number): Observable<boolean> {
+        return this.http.put<any>(this.apiUrl + `/${notificationId}/read`, {}).pipe(
+            tap(() => {
+                const updated = this.notifications.map(n =>
+                    n.id === notificationId ? { ...n, recu: true } : n
+                );
+                this._notifications.next(updated);
+                const unreadCount = updated.filter(n => !n.recu).length;
+                this._unreadCount.next(unreadCount);
+            })
+        );
+    }
 
-                // Return the updated status
-                return true;
+    /**
+     * Mark notifications as unread
+     */
+    markAsUnread(notificationId: Number): Observable<boolean> {
+        return this.http.put<any>(this.apiUrl + `/${notificationId}/unread`, {}).pipe(
+            tap(() => {
+                const updated = this.notifications.map(n =>
+                    n.id === notificationId ? { ...n, recu: false } : n
+                );
+                this._notifications.next(updated);
+                const unreadCount = updated.filter(n => !n.recu).length;
+                this._unreadCount.next(unreadCount);
             })
         );
     }

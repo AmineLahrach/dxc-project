@@ -74,27 +74,24 @@
         <mat-tree #tree [dataSource]="dataSourceNew" [childrenAccessor]="childrenAccessor" class="example-tree">
           <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
             <li>
-            <div class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer group"
-                 [style.margin-left.px]="40">
-              <button matIconButton disabled></button>
-                            <span [class]="'font-medium text-primary cursor-pointer hover:underline'" 
-                    (click)="onNodeNameClick(node, $event)">{{node.name}}</span>
-              <!-- <span [class]="'font-medium ' + (node.nodeType === 'PLAN_ACTION' ? 'text-secondary' : 'text-primary cursor-pointer hover:underline')" 
-                    (click)="onNodeNameClick(node, $event)">{{node.name}}</span> -->
-              <mat-icon [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ? 'Weight: ' + node.poids + ' ' + node.description : node.description" class="text-primary ms-2" [style.font-size.px]="16">info_outline</mat-icon>
-                <button mat-icon-button *ngIf="!(node.nodeType === 'VARIABLE_ACTION' && node.fige)"
-                          [matTooltip]="node.nodeType 
-                      === 'VARIABLE_ACTION' ?'Add Variable' : 'Add Action Plan'"
-                          class="text-green-600 hover:bg-green-100"   
-                          (click)="addChildVariable(node, $event); $event.stopPropagation()">
-                <mat-icon class="icon-size-5 text-primary-500" [svgIcon]="'heroicons_outline:plus'"></mat-icon>                
+              <div class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer group"
+                   [style.margin-left.px]="40">
+                <button matIconButton disabled></button>
+                <span [class]="getNodeNameClass(node)" 
+                      (click)="onNodeNameClick(node, $event)">{{node.name}}</span>
+                <mat-icon [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ? 'Weight: ' + node.poids + ' ' + node.description : node.description" class="text-primary ms-2" [style.font-size.px]="16">info_outline</mat-icon>
+                <button mat-icon-button *ngIf="canAddChildren(node)"
+                        [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ? 'Add Variable' : 'Add Action Plan'"
+                        class="text-green-600 hover:bg-green-100"   
+                        (click)="addChildVariable(node, $event); $event.stopPropagation()">
+                  <mat-icon class="icon-size-5 text-primary-500" [svgIcon]="'heroicons_outline:plus'"></mat-icon>                
                 </button>
                 <span *ngIf="node.nodeType === 'VARIABLE_ACTION' && node.fige" 
                       class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                    <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
-                    Fixed Variable
+                  <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+                  Fixed Variable
                 </span>
-            </div>
+              </div>
             </li>
           </mat-tree-node>
           <mat-tree-node
@@ -112,22 +109,22 @@
                         </mat-icon>
                       </button>
                     </ul>
-                    <span [class]="'font-medium text-primary cursor-pointer hover:underline'"
+                    <span [class]="getNodeNameClass(node)"
                           (click)="onNodeNameClick(node, $event)">{{node.name}}</span>
                     <mat-icon 
-                      [matTooltip]="node.nodeType 
-                      === 'VARIABLE_ACTION' ?
+                      [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ?
                       'Weight: ' + node.poids + ' ' + node.description 
                       : node.description" 
                       class="text-primary ms-2" 
                       [style.font-size.px]="16">info_outline</mat-icon>
-                    <button mat-icon-button *ngIf="!(node.nodeType === 'VARIABLE_ACTION' && node.fige)"
-                            [matTooltip]="node.nodeType 
-                      === 'VARIABLE_ACTION' ?'Add Variable' : 'Add Action Plan'"
+
+                    <button mat-icon-button *ngIf="canAddChildren(node)"
+                            [matTooltip]="node.nodeType === 'VARIABLE_ACTION' ?'Add Variable' : 'Add Action Plan'"
                             class="text-green-600 hover:bg-green-100"
                             (click)="addChildVariable(node, $event); $event.stopPropagation()">
                       <mat-icon class="icon-size-5 text-primary-500" [svgIcon]="'heroicons_outline:plus'"></mat-icon>
                   </button>
+                  
                   <span *ngIf="node.nodeType === 'VARIABLE_ACTION' && node.fige" 
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                       <mat-icon class="icon-size-3 mr-1" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>

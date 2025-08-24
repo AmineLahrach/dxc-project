@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { AuthUtils } from 'app/core/auth/auth.utils';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/models/auth.models';
-import { BehaviorSubject, catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, map, switchMap, throwError } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -211,6 +211,14 @@ export class AuthService {
         return userStr ? JSON.parse(userStr) : null;
     }
 
+    public setCurrentUserInStorage(user: User): void {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+
+    public setTokenInStorage(token: string): void {
+        localStorage.setItem('accessToken', token);
+    }
+
     /**
      * Check the authentication status
      */
@@ -249,14 +257,15 @@ export class AuthService {
      */
     hasRole(role: string): Observable<boolean> {
         return this.currentUser$.pipe(
-            switchMap((user) => {
+            map(user => {
                 if (!user) {
-                    return of(false);
+                    return false;
                 }
-                return of(user.roles.includes(role));
+                return user.roles?.includes(role) ?? false;
             })
         );
     }
+
 
     /**
      * Check if current user is admin

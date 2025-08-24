@@ -60,7 +60,7 @@
                     (click)="onCancel()">
                     Cancel
                 </button>
-                <button
+                <button *ngIf="isDirector"
                     type="submit"
                     mat-flat-button
                     color="primary"

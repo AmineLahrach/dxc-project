@@ -27,14 +27,13 @@ import { Subject, takeUntil } from 'rxjs';
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'notifications',
     imports: [
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
-        NgClass,
-        NgTemplateOutlet,
-        RouterLink,
-        DatePipe,
-    ],
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    NgClass,
+    NgTemplateOutlet,
+    DatePipe
+],
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
     @ViewChild('notificationsOrigin') private _notificationsOrigin: MatButton;
@@ -137,12 +136,18 @@ export class NotificationsComponent implements OnInit, OnDestroy {
      */
     toggleRead(notification: Notification): void {
         // Toggle the read status
-        notification.read = !notification.read;
-
-        // Update the notification
-        this._notificationsService
-            .update(notification.id, notification)
+        notification.recu = !notification.recu;
+        if (notification.recu) {
+            this._notificationsService
+            .markAsRead(notification.id)
             .subscribe();
+        } else {
+            this._notificationsService
+            .markAsUnread(notification.id)
+            .subscribe();
+        }
+        
+        
     }
 
     /**
@@ -150,7 +155,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
      */
     delete(notification: Notification): void {
         // Delete the notification
-        this._notificationsService.delete(notification.id).subscribe();
+        this._notificationsService.delete(notification.oldId).subscribe();
     }
 
     /**
@@ -227,7 +232,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
         if (this.notifications && this.notifications.length) {
             count = this.notifications.filter(
-                (notification) => !notification.read
+                (notification) => !notification.recu
             ).length;
         }
 
