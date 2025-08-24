@@ -46,6 +46,9 @@ public class VariableActionService {
     @Autowired
     private UserServiceImpl userService;
 
+    @Autowired
+    private NotificationService notificationService;
+
     // ✅ Récupérer toutes les variables d'action avec poids calculé dynamiquement
     public List<VariableAction> getAllVariableActions() {
         List<VariableAction> allVariableActions = variableActionRepository.findAll();
@@ -315,12 +318,12 @@ public class VariableActionService {
         if (variableAction.getOrdre() == null) {
             variableAction.setOrdre(getNextOrderForParent(variableAction.getVaMere(), variableAction.getPlanAction()));
         }
-        
         // Save the variable action with generated code and order
         VariableAction savedVA = variableActionRepository.save(variableAction);
         
         // Log the creation action
         logCreationAction(savedVA);
+        createNotification(savedVA);
         
         // Create and return response DTO with audit logs
         VariableActionResponseDTO responseDTO = new VariableActionResponseDTO(savedVA);
@@ -328,6 +331,11 @@ public class VariableActionService {
         responseDTO.setAuditLogs(auditService.formatAuditsForDisplay(audits));
         
         return responseDTO;
+    }
+
+    private void createNotification(VariableAction savedVA) {
+        if (savedVA.getResponsable() == null) return;
+        notificationService.notifyActionVariableAssigned(savedVA.getResponsable(), savedVA.getDisplayName());
     }
 
     // ✅ Mettre à jour une variable d'action existante

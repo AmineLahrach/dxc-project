@@ -8,14 +8,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.example.GestionPlanAction.dto.*;
+import com.example.GestionPlanAction.security.JwtUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.GestionPlanAction.dto.ProfilDTO;
-import com.example.GestionPlanAction.dto.ServiceLineDTO;
-import com.example.GestionPlanAction.dto.UserProfileDTO;
-import com.example.GestionPlanAction.dto.UserResponseDTO;
-import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
 import com.example.GestionPlanAction.model.Audit;
 import com.example.GestionPlanAction.model.Profil;
 import com.example.GestionPlanAction.model.ServiceLine;
@@ -41,6 +41,12 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private AuditService auditService; // Inject AuditService
+
+	@Autowired
+	private EmailService emailService;
+
+	@Autowired
+	private JwtUtils jwtUtils;
 
 	@Override
 	public List<UserResponseDTO> getAll() {
@@ -86,40 +92,41 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User createWithRelations(User user, Long serviceLineId, Set<Long> profileIds) {
-	    if (serviceLineId != null) {
-	        user.setServiceLine(serviceLineRepository.findById(serviceLineId).orElse(null));
-	    }
-	    if (profileIds != null && !profileIds.isEmpty()) {
-	        user.setProfils(new HashSet<>(profilRepository.findAllById(profileIds)));
-	    }
-	    
-	    User savedUser = repository.save(user);
-	    
-	    // Log user creation
-	    Long currentUserId = SecurityUtils.getCurrentUserId();
-	    User currentUser = repository.findById(currentUserId).orElse(null);
-	    if (currentUser != null) {
-	        StringBuilder details = new StringBuilder("Created user: ")
-	            .append(user.getNom())
-	            .append(" ")
-	            .append(user.getPrenom());
-	        
-	        if (user.getServiceLine() != null) {
-	            details.append("; Service Line: ").append(user.getServiceLine().getNom());
-	        }
-	        
-	        if (!user.getProfils().isEmpty()) {
-	            details.append("; Profiles: ")
-	                .append(user.getProfils().stream()
-	                    .map(Profil::getNom)
-	                    .collect(Collectors.joining(", ")));
-	        }
-	        
-	        auditService.logAction("user_created", currentUser, details.toString(), "User", savedUser.getId());
-	    }
-	    
-	    return savedUser;
+	public User createWithRelations(User user, UserProfileDTO userProfileDTO) {
+		if (userProfileDTO.getServiceLine() != null) {
+			user.setServiceLine(serviceLineRepository.findById(userProfileDTO.getServiceLine()).orElse(null));
+		}
+		if (userProfileDTO.getRoles() != null && !userProfileDTO.getRoles().isEmpty()) {
+			user.setProfils(new HashSet<>(profilRepository.findAllById(userProfileDTO.getRoles())));
+		}
+
+		User savedUser = repository.save(user);
+
+		// Log user creation
+		Long currentUserId = SecurityUtils.getCurrentUserId();
+		User currentUser = repository.findById(currentUserId).orElse(null);
+		if (currentUser != null) {
+			StringBuilder details = new StringBuilder("Created user: ")
+					.append(user.getNom())
+					.append(" ")
+					.append(user.getPrenom());
+
+			if (user.getServiceLine() != null) {
+				details.append("; Service Line: ").append(user.getServiceLine().getNom());
+			}
+
+			if (!user.getProfils().isEmpty()) {
+				details.append("; Profiles: ")
+						.append(user.getProfils().stream()
+								.map(Profil::getNom)
+								.collect(Collectors.joining(", ")));
+			}
+
+			auditService.logAction("user_created", currentUser, details.toString(), "User", savedUser.getId());
+			emailService.sendUserRegistrationEmail(user.getEmail(), user.getUsername(), userProfileDTO.getMotDePasse());
+		}
+
+		return savedUser;
 	}
 
 	@Override
@@ -323,5 +330,33 @@ public class UserServiceImpl implements UserService {
 	        return (nom + " " + prenom).trim();
 	    }
 	    return "unassigned";
+	}
+
+	@Override
+	public UserProfileResponseDTO updateProfile(Long id, UserProfileUpdateDTO dto) {
+		User existing = findEntityById(id);
+
+		if (!StringUtils.isEmpty(dto.getUsername())){
+			existing.setUsername(dto.getUsername());
+		}
+
+		if (!StringUtils.isEmpty(dto.getEmail())){
+			existing.setEmail(dto.getEmail());
+		}
+
+		if (!StringUtils.isEmpty(dto.getMotDePasse()) && !StringUtils.isEmpty(dto.getNewPassword())){
+			if (new BCryptPasswordEncoder().matches(dto.getMotDePasse(), existing.getMotDePasse())){
+				existing.setMotDePasse(new BCryptPasswordEncoder().encode(dto.newPassword));
+			} else {
+				throw new RuntimeException("Existing password doesn't match!");
+			}
+		}
+
+		repository.save(existing);
+		String token = jwtUtils.generateTokenFromUsernameWithRoles(existing.getUsername(),
+				existing.getProfils().stream()
+						.map(p -> new SimpleGrantedAuthority(p.getNom())).toList());
+		UserResponseDTO responseDTO = convertToResponseDTO(existing);
+		return new UserProfileResponseDTO(responseDTO, token);
 	}
 }

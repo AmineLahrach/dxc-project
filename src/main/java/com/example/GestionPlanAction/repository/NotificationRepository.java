@@ -31,7 +31,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("UPDATE Notification n SET n.recu = true WHERE n.id = :notificationId AND n.utilisateur = :user")
     void markAsReadForUser(@Param("notificationId") Long notificationId, @Param("user") User user);
-    
+
+    @Modifying
+    @Query("UPDATE Notification n SET n.recu = false WHERE n.id = :notificationId AND n.utilisateur = :user")
+    void markAsUnreadForUser(@Param("notificationId") Long notificationId, @Param("user") User user);
+
+
     @Query("SELECT n FROM Notification n WHERE n.type = :type AND n.date >= :since ORDER BY n.date DESC")
     List<Notification> findByTypeAndDateAfter(@Param("type") String type, @Param("since") LocalDateTime since);
 }

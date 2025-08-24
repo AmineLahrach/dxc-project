@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: Arial, sans-serif;">
+<h2>Welcome to DXC!</h2>
+<p>Your account has been created successfully. Below are your credentials:</p>
+
+<table border="1" cellpadding="10" cellspacing="0">
+    <tr>
+        <th>Username</th>
+        <td th:text="${username}"></td>
+    </tr>
+    <tr>
+        <th>Password</th>
+        <td th:text="${password}"></td>
+    </tr>
+</table>
+
+<br>
+<p>Please change your password after first login.</p>
+</body>
+</html>
