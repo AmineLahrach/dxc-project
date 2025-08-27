@@ -364,7 +364,10 @@ public class PlanActionServiceImpl implements PlanActionService {
             node.setPlanActionId(va.getPlanAction() != null ? va.getPlanAction().getId() : null);
             node.setDescription(va.getDescription());
             node.setChildren(buildVariableTree(va.getSousVAs()));
-            node.setOwner(Objects.equals(SecurityUtils.getCurrentUserId(), va.getCreatedBy()));
+            if (va.getResponsable() != null){
+                node.setOwner(Objects.equals(SecurityUtils.getCurrentUserId(), va.getResponsable().getId()));
+            }
+
             children.add(node);
         }
         return children;

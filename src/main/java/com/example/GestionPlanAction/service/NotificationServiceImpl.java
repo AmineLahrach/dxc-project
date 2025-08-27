@@ -8,13 +8,10 @@ import com.example.GestionPlanAction.security.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -95,10 +92,10 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 
-    public void notifyActionVariableAssigned(User user, String title) {
+    public void notifyActionVariableAssigned(User user, String title, String planActionName) {
         createNotification(
-            "Action variable assignée",
-            "L’action variable « " + title + " » vous a été assignée.",
+            "Action variable assigned",
+            title + " » " + planActionName + " is assigned to this action variable",
                 TYPE_INFO,
             user
         );

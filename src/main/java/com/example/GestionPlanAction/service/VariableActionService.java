@@ -335,7 +335,12 @@ public class VariableActionService {
 
     private void createNotification(VariableAction savedVA) {
         if (savedVA.getResponsable() == null) return;
-        notificationService.notifyActionVariableAssigned(savedVA.getResponsable(), savedVA.getDisplayName());
+        String planActionName = "";
+        if (savedVA.getPlanAction() != null) {
+            planActionName = savedVA.getPlanAction().getTitre();
+        }
+
+        notificationService.notifyActionVariableAssigned(savedVA.getResponsable(), savedVA.getDisplayName(), planActionName);
     }
 
     // ✅ Mettre à jour une variable d'action existante
