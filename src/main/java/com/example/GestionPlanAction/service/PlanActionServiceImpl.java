@@ -23,6 +23,7 @@ import com.example.GestionPlanAction.security.SecurityUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class PlanActionServiceImpl implements PlanActionService {
@@ -363,6 +364,10 @@ public class PlanActionServiceImpl implements PlanActionService {
             node.setPlanActionId(va.getPlanAction() != null ? va.getPlanAction().getId() : null);
             node.setDescription(va.getDescription());
             node.setChildren(buildVariableTree(va.getSousVAs()));
+            if (va.getResponsable() != null){
+                node.setOwner(Objects.equals(SecurityUtils.getCurrentUserId(), va.getResponsable().getId()));
+            }
+
             children.add(node);
         }
         return children;

@@ -1,10 +1,6 @@
 package com.example.GestionPlanAction.controller;
 
-import com.example.GestionPlanAction.dto.IdsRequest;
-import com.example.GestionPlanAction.dto.StatusUpdateRequest;
-import com.example.GestionPlanAction.dto.UserProfileDTO;
-import com.example.GestionPlanAction.dto.UserResponseDTO;
-import com.example.GestionPlanAction.dto.UserWithProfilesDTO;
+import com.example.GestionPlanAction.dto.*;
 import com.example.GestionPlanAction.model.User;
 import com.example.GestionPlanAction.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +45,7 @@ public class UserController {
         u.setUsername(dto.getUsername());
         u.setMotDePasse(new BCryptPasswordEncoder().encode(dto.motDePasse));
         u.setActif(dto.actif != null ? dto.actif : true);
-        return service.createWithRelations(u, dto.serviceLine, dto.roles);
+        return service.createWithRelations(u, dto);
     }
 
     @PutMapping("/{id}")
@@ -58,6 +54,11 @@ public class UserController {
             dto.motDePasse = new BCryptPasswordEncoder().encode(dto.motDePasse);
         }
         return service.updateWithRelations(id, dto);
+    }
+
+    @PutMapping("/{id}/profile")
+    public UserProfileResponseDTO updateProfile(@PathVariable Long id, @RequestBody UserProfileUpdateDTO dto) {
+        return service.updateProfile(id, dto);
     }
 
     @DeleteMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.example.GestionPlanAction.model;
 
+import com.example.GestionPlanAction.security.SecurityUtils;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -52,6 +53,9 @@ public class VariableAction {
     @JsonIgnoreProperties({"vaMere", "planAction"}) // Prevent circular reference
     @OrderBy("ordre ASC")
     private List<VariableAction> sousVAs = new ArrayList<>();
+
+    private Long createdBy; // User ID who created the plan
+
 
     // Helper methods
     
@@ -111,5 +115,10 @@ public class VariableAction {
     public String getDisplayName() {
         String levelIndicator = "•".repeat(Math.max(0, niveau - 1));
         return levelIndicator + " " + (code != null ? code : "VA") + " - " + description;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdBy = SecurityUtils.getCurrentUserId();
     }
 }
