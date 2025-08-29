@@ -654,7 +654,7 @@ public class VariableActionService {
         // Set level: number of digits after "VA"
         String code = variableAction.getCode();
         int level = code.substring(2).length();  // Changed from substring(1) to substring(2) to account for "VA" prefix
-        variableAction.setNiveau(level + 1);    // Add 1 because first level is 1, not 0
+        variableAction.setNiveau(level);    // Add 1 because first level is 1, not 0
     }
 
     private int getNextSiblingNumber(List<VariableAction> siblings, String prefix) {
