@@ -17,6 +17,7 @@ import { VariableService } from '../variable-service';
 export class VariableFormComponent implements OnInit, OnChanges {
   @Input() variableId: number;
   @Input() planActionId: number;
+  @Input() parentVariableId: number;
   @Input() isEditMode: boolean = false;
   @Output() formSubmit = new EventEmitter<any>();
   @Output() formCancel = new EventEmitter<void>();
@@ -66,10 +67,7 @@ export class VariableFormComponent implements OnInit, OnChanges {
       this.plans = plans;
     });
 
-    if(this.planActionId){
-      this.variableForm.get('plan_action_id').setValue(this.planActionId)
-      this.variableForm.get('plan_action_id').disable();
-    }
+    
 
     // Add event listener for plan action changes
     this.variableForm.get('plan_action_id').valueChanges.subscribe(planId => {
@@ -80,6 +78,11 @@ export class VariableFormComponent implements OnInit, OnChanges {
         this.variableForm.get('va_mere_id').setValue('');
       }
     });
+
+    if(this.planActionId){
+      this.variableForm.get('plan_action_id').setValue(this.planActionId , { emitEvent: true });
+      this.variableForm.get('plan_action_id').disable();
+    }
     
     // Subscribe to form status changes to emit validity
     this.variableForm.statusChanges.subscribe(status => {
@@ -120,6 +123,13 @@ export class VariableFormComponent implements OnInit, OnChanges {
   loadVariableActions(planId: number): void {
     this.variableService.getVariableActionsDropdown(planId).subscribe(actions => {
       this.variableActions = actions;
+      if(this.parentVariableId && this.parentVariableId > 0){
+        const selectedVariable = this.variableActions.find(va => va.id === this.parentVariableId);  
+        if(selectedVariable){
+          this.variableForm.get('va_mere_id').setValue(selectedVariable.id || '');
+          this.variableForm.get('va_mere_id').disable();
+        }
+      }
     });
   }
 
