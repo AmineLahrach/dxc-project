@@ -105,8 +105,8 @@ public class VariableAction {
      * Check if this node can have children based on business rules
      */
     public boolean canHaveChildren() {
-        // Business rule: Level 1 nodes can have children up to level 4
-        return this.niveau < 4;
+        // Business rule: Level 1 nodes can have children up to level 15
+        return this.niveau < 15;
     }
     
     /**
