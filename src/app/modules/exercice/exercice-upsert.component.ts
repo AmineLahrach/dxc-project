@@ -37,7 +37,7 @@ export class ExerciseUpsertComponent implements OnInit, OnDestroy {
       id: [0],
       annee: [
         this.currentYear, 
-        [Validators.required, Validators.min(2000), Validators.max(this.currentYear + 1)]
+        [Validators.required, Validators.min(this.currentYear), Validators.max(this.currentYear + 1)]
       ],
       verrouille: [false]
     });

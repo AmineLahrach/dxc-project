@@ -61,9 +61,9 @@
                     <!-- Year -->
                     <mat-form-field>
                         <mat-label>Year</mat-label>
-                        <input matInput type="number" formControlName="annee" min="2000" [max]="currentYear + 1">
+                        <input matInput type="number" formControlName="annee" [min]="currentYear" [max]="currentYear + 1">
                         <mat-error>{{getFieldError('annee')}}</mat-error>
-                        <mat-hint>Enter a year between 2000 and {{currentYear + 1}}</mat-hint>
+                        <mat-hint>Enter a year: {{currentYear}} or {{currentYear + 1}}.</mat-hint>
                     </mat-form-field>
 
                     <!-- Status -->
